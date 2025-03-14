@@ -1,0 +1,54 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Event {
+  id          String   @id @default(uuid())
+  title       String
+  description String?
+  date        DateTime
+  location    String?
+  imageUrl    String?
+  createdAt   DateTime @default(now())
+
+  // Standardized RSVP questions (max 4 extra fields)
+  question1   String?
+  question2   String?
+  question3   String?
+  question4   String?
+
+  organizerId String
+  organizer   User  @relation(fields: [organizerId], references: [id])
+
+  attendees   RSVP[]
+}
+
+model RSVP {
+  id        String  @id @default(uuid())
+  userId    String
+  eventId   String
+  status    String  // "Going", "Maybe", "Not Going"
+
+  // Standardized RSVP answers (corresponding to event questions)
+  answer1   String?
+  answer2   String?
+  answer3   String?
+  answer4   String?
+
+  user      User  @relation(fields: [userId], references: [id])
+  event     Event @relation(fields: [eventId], references: [id])
+}
+
+model User {
+  id       String  @id @default(uuid())
+  name     String
+  email    String  @unique
+
+  organizedEvents Event[] @relation("Organizer")
+  rsvps           RSVP[]
+}
