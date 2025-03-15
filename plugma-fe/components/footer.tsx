@@ -5,15 +5,15 @@ const Footer = () => {
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-8 mb-12">
             <div className="col-span-2 lg:col-span-1">
               <a href="/" className="flex items-center mb-4">
-                <span className="text-xl font-semibold tracking-tight text-foreground">luma</span>
+                <span className="text-xl font-semibold tracking-tight text-foreground">plugma</span>
                 <div className="ml-1 w-2 h-2 bg-luma-600 rounded-full"></div>
               </a>
               <p className="text-sm text-muted-foreground mb-4">
-                Crafting unforgettable event experiences with the most elegant platform on the market.
+                I Do not claim the copyright of anything here, this is merely a demo because I couldn't aqquire data from luma or my university event software.
               </p>
             </div>
             
-            <div>
+            {/* <div>
               <h3 className="font-medium mb-4 text-sm">Product</h3>
               <ul className="space-y-3">
                 {['Features', 'Pricing', 'Templates', 'Customers'].map((item) => (
@@ -63,12 +63,12 @@ const Footer = () => {
                   </li>
                 ))}
               </ul>
-            </div>
-          </div>
+            </div>*/}
+          </div> 
           
           <div className="border-t border-gray-100 pt-8 flex flex-col md:flex-row justify-between items-center">
             <p className="text-sm text-muted-foreground mb-4 md:mb-0">
-              © {new Date().getFullYear()} Luma. All rights reserved.
+              © {new Date().getFullYear()} plugma. All rights reserved.
             </p>
             <div className="flex space-x-6">
               {['Twitter', 'LinkedIn', 'Instagram', 'GitHub'].map((platform) => (

@@ -1,18 +1,34 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
+import {supabase} from "../lib/supabaseClient";
+
+type UserCTA = {
+  button_text: string;
+  link: string;
+};
+
 
 const Navbar = () => {
   const [scrolled, setScrolled] = useState(false);
-
+  const [userCTA, setUserCTA] = useState<UserCTA>({ button_text: 'Sign in', link: '/sign-in' });
   useEffect(() => {
+    const fetchUser = async () => {
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+  
+        if (user) {
+          setUserCTA({ button_text: 'Host an event', link: '/dashboard' });
+        } 
+      };
     const handleScroll = () => {
       const isScrolled = window.scrollY > 20;
       if (isScrolled !== scrolled) {
         setScrolled(isScrolled);
       }
     };
-
+    fetchUser();
     window.addEventListener('scroll', handleScroll);
     return () => {
       window.removeEventListener('scroll', handleScroll);
@@ -34,7 +50,7 @@ const Navbar = () => {
               <span className="text-xl font-semibold tracking-tight text-foreground">plugma</span>
               <div className="ml-1 w-2 h-2 bg-luma-600 rounded-full"></div>
             </a>
-            <nav className="hidden lg:flex ml-10 space-x-8">
+            {/* <nav className="hidden lg:flex ml-10 space-x-8">
               <a href="#features" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
                 Features
               </a>
@@ -47,15 +63,14 @@ const Navbar = () => {
               <a href="#customers" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
                 Customers
               </a>
-            </nav>
+            </nav> */}
           </div>
-          <div className="flex items-center space-x-4">
-            <a href="/login" className="hidden md:inline-flex text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
-              Log in
-            </a>
-            <Button className="bg-black hover:bg-black/90 text-white transition-all" size="sm">
-              Get Started
+          <div className="flex items-end space-x-4">
+            <a href={userCTA.link}>
+            <Button className='className="hidden md:inline-flex text-sm font-medium text-white hover:text-foreground transition-colors'>
+              {userCTA.button_text}
             </Button>
+            </a>
           </div>
         </div>
       </div>

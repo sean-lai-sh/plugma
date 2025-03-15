@@ -19,12 +19,12 @@ const Hero = () => {
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 animate-fade-in" style={{ animationDelay: "0.3s" }}>
             <Button size="lg" className="bg-luma-600 hover:bg-luma-700 text-white w-full sm:w-auto">
-              Create your event
+              Create your delightful event
             </Button>
-            <Button variant="outline" size="lg" className="group w-full sm:w-auto">
+            {/* <Button variant="outline" size="lg" className="group w-full sm:w-auto">
               See examples
               <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
-            </Button>
+            </Button> */}
           </div>
         </div>
       </div>
