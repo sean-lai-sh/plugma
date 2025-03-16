@@ -7,6 +7,16 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model User {
+  id       String   @id @default(uuid()) 
+  name     String
+  email    String   @unique
+  createdAt DateTime @default(now())
+
+  organizedEvents Event[] @relation("Organizer")
+  rsvps           RSVP[]
+}
+
 model Event {
   id          String   @id @default(uuid())
   title       String
@@ -42,13 +52,4 @@ model RSVP {
 
   user      User  @relation(fields: [userId], references: [id])
   event     Event @relation(fields: [eventId], references: [id])
-}
-
-model User {
-  id       String  @id @default(uuid())
-  name     String
-  email    String  @unique
-
-  organizedEvents Event[] @relation("Organizer")
-  rsvps           RSVP[]
 }
