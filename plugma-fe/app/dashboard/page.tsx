@@ -5,8 +5,9 @@ import { useRouter } from "next/navigation";
 import { supabase } from "../../lib/supabaseClient";
 import { Tabs, TabsList, TabsTrigger } from "../../components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { Calendar, Plus, Sparkles } from "lucide-react";
+import { Calendar, Plus, Sparkles, Tickets } from "lucide-react";
 import EmptyState from "../../components/ui/EmptyState";
+import DashboardNavbar from "@/components/dashboardnavbar";
 
 type UserCTA = {
   button_text: string;
@@ -17,22 +18,21 @@ export default function Dashboard() {
     const [scrolled, setScrolled] = useState(false);
       const [userCTA, setUserCTA] = useState<UserCTA>({ button_text: 'Sign in', link: '/sign-in' });
       useEffect(() => {
-        const fetchUser = async () => {
-            const {
-              data: { user },
-            } = await supabase.auth.getUser();
+        // const fetchUser = async () => {
+        //     const {
+        //       data: { user },
+        //     } = await supabase.auth.getUser();
       
-            if (user) {
-              setUserCTA({ button_text: 'Host an event', link: '/dashboard' });
-            } 
-          };
+        //     if (user) {
+        //       setUserCTA({ button_text: 'Host an event', link: '/dashboard' });
+        //     } 
+        //   };
         const handleScroll = () => {
           const isScrolled = window.scrollY > 20;
           if (isScrolled !== scrolled) {
             setScrolled(isScrolled);
           }
         };
-        fetchUser();
         window.addEventListener('scroll', handleScroll);
         return () => {
           window.removeEventListener('scroll', handleScroll);
@@ -43,25 +43,25 @@ export default function Dashboard() {
   const [data, setData] = useState<any[]>([]);
   const router = useRouter();
 
-  useEffect(() => {
-    // Fetch user session
-    const fetchUser = async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
+//   useEffect(() => {
+//     // Fetch user session
+//     const fetchUser = async () => {
+//       const {
+//         data: { user },
+//       } = await supabase.auth.getUser();
 
-      if (!user) {
-        router.push("/sign-in"); // Redirect if not signed in
-      } else {
-        setUser(user);
-        fetchData(); // Fetch Supabase data
-      }
+//       if (!user) {
+//         router.push("/sign-in"); // Redirect if not signed in
+//       } else {
+//         setUser(user);
+//         fetchData(); // Fetch Supabase data
+//       }
 
-      setLoading(false);
-    };
+//       setLoading(false);
+//     };
 
-    fetchUser();
-  }, [router]);
+//     fetchUser();
+//   }, [router]);
 
   // Fetch some example data from Supabase
   const fetchData = async () => {
@@ -73,37 +73,10 @@ export default function Dashboard() {
     <div className="min-h-screen w-full bg-[#F1F0FB]">
       {/* Top Navigation */}
       
-      <header className="border-b border-slate-200 ">
-        
-        <div className="container mx-auto px-4 md:px-6 py-6 "> 
-           
-
-            <div className="flex items-center">
-                <a href="/dashboard" className="flex items-center mr-5 ml-[-.25rem]"> 
-                    {/*  THE ABOVE IS LITERAL MAGIC (ALIGNS PERFECTLY) */}
-                <span className="text-xl font-semibold tracking-tight text-foreground">plugma</span>
-                <div className="ml-1 w-2 h-2 bg-luma-600 rounded-full"></div>
-                </a>
-                <div className="flex items-center space-x-6">
-                    <a href="/dashboard" className="flex items-center font-medium text-black">
-                        <Calendar className="mr-2 h-5 w-5" />
-                        <p className="hidden md:inline">Events</p>
-                    </a>
-                    <a href="#" className="flex items-center text-slate-500">
-                        <Calendar className="mr-2 h-5 w-5" />
-                        <p className="hidden md:inline">Calendar</p>
-                    </a>
-                    <a href="#" className="flex items-center text-slate-500">
-                        <Sparkles className="mr-2 h-5 w-5" />
-                        <p className="hidden md:inline">Discover</p>
-                    </a>
-                </div>
-            </div>
-        </div>
-      </header>
+      <DashboardNavbar/>
 
       {/* Main Content */}
-      <main className="container mx-auto px-4 py-8 md:mt-10 lg:min-h-[70vh] min-h-[80vh] ">
+      <main className="container mx-auto px-4 py-8 lg:py-2 md:mt-10 lg:min-h-[70vh] min-h-[80vh] ">
         <div className="mb-8 flex items-center justify-between">
           <h1 className="text-3xl font-bold text-slate-900">Events</h1>
           <Tabs defaultValue="upcoming" className="w-auto">
@@ -115,7 +88,7 @@ export default function Dashboard() {
         </div>
 
         {/* Empty State */}
-        <div className="mt-16 flex flex-col items-center justify-center">
+        <div className="mt-20 flex flex-col items-center justify-center">
           <EmptyState />
           <h2 className="mt-8 text-2xl font-medium text-slate-600">No Upcoming Events</h2>
           <p className="mt-2 text-slate-500">You have no upcoming events. Why not host one?</p>

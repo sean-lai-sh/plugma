@@ -8,7 +8,6 @@ import { useState } from "react";
 import { supabase } from "../lib/supabaseClient";
 import Cookies from "js-cookie";
 
-// Ignore; Currently going to move to this after demo since I want to iterate quickly
 export default function SignupComp() {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
@@ -53,7 +52,11 @@ export default function SignupComp() {
       const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
         email,
         password,
-        
+        options: {
+          data: {
+            full_name: `${firstName} ${lastName}`,
+          }
+        }
       });
   
       if (signUpData.user) {
@@ -110,7 +113,7 @@ export default function SignupComp() {
           e.preventDefault();
           handleAuth();
         }}>
-        {/* <div className="flex flex-col md:flex-row space-y-2 md:space-y-0 md:space-x-2 mb-4">
+        <div className="flex flex-col md:flex-row space-y-2 md:space-y-0 md:space-x-2 mb-4">
           <LabelInputContainer>
             <Label htmlFor="firstname">First name</Label>
             <Input id="firstname" placeholder="John" type="text" value={firstName}
@@ -121,7 +124,7 @@ export default function SignupComp() {
             <Input id="lastname" placeholder="Smith" type="text" value={lastName}
         onChange={(e) => setLastName(e.target.value)}/>
           </LabelInputContainer>
-        </div> */}
+        </div>
         <LabelInputContainer className="mb-4">
           <Label htmlFor="email">Email Address</Label>
           <Input id="email" placeholder="myself@mail.com" type="email" value={email} onChange={(e) => setEmail(e.target.value)}/>
