@@ -3,53 +3,32 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
-}
-
-model User {
-  id       String   @id @default(uuid()) 
-  name     String
-  email    String   @unique
-  createdAt DateTime @default(now())
-
-  organizedEvents Event[] @relation("Organizer")
-  rsvps           RSVP[]
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 model Event {
-  id          String   @id @default(uuid())
-  title       String
-  description String?
-  date        DateTime
-  location    String?
-  imageUrl    String?
-  createdAt   DateTime @default(now())
+  id                   String   @id @default(uuid()) @map("id")
+  eventName            String   @map("event_name")
+  eventDescription     String   @map("event_description")
+  creatorId            String   @db.Uuid @map("creator_id")
+  approvalRequired     Boolean  @default(false) @map("approval_required")
+  paymentAmount        Float    @default(0.0) @map("payment_amount")
+  paymentCurrency      String   @default("USD") @map("payment_currency")
+  eventDate            DateTime @map("event_date")
+  endDate              DateTime? @map("end_date")
+  capacity             Int?     @map("capacity")
+  locationName         String?  @map("location_name")
+  locationAddress      String?  @map("location_address")
+  locationCoordinates  String?  @map("location_coordinates")
+  isVirtual            Boolean  @default(false) @map("is_virtual")
+  virtualMeetingUrl    String?  @map("virtual_meeting_url")
+  isPrivate            Boolean  @default(false) @map("is_private")
+  createdAt            DateTime @default(now()) @map("created_at")
+  updatedAt            DateTime @updatedAt @map("updated_at")
 
-  // Standardized RSVP questions (max 4 extra fields)
-  question1   String?
-  question2   String?
-  question3   String?
-  question4   String?
-
-  organizerId String
-  organizer   User  @relation(fields: [organizerId], references: [id])
-
-  attendees   RSVP[]
+  @@map("events")
 }
 
-model RSVP {
-  id        String  @id @default(uuid())
-  userId    String
-  eventId   String
-  status    String  // "Going", "Maybe", "Not Going"
 
-  // Standardized RSVP answers (corresponding to event questions)
-  answer1   String?
-  answer2   String?
-  answer3   String?
-  answer4   String?
-
-  user      User  @relation(fields: [userId], references: [id])
-  event     Event @relation(fields: [eventId], references: [id])
-}

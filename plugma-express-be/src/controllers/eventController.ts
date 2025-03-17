@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import { PrismaClient } from "@prisma/client";
 import queue from "../config/redis";
 import axios from "axios";
+import {createEvent} from "./events/createEvent";
 
 const prisma = new PrismaClient();
 
@@ -10,13 +11,14 @@ export const getEvents = async (req: Request, res: Response): Promise<void> => {
   res.json(events);
 };
 
-export const createEvent = async (req: Request, res: Response): Promise<void> => {
-  const { title, description, date, location } = req.body;
-  const event = await prisma.event.create({
-    data: { title, description, date: new Date(date), location },
-  });
-  res.status(201).json(event);
-};
+export const createEventController = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const event = await createEvent(req, res);
+    res.status(201).json(event);
+  } catch (error) {
+    res.status(500).json({ error: "Failed to create event" });
+  }
+}
 
 export const blastEmail = async (req: Request, res: Response): Promise<void> => {
   const { subject, message, recipients } = req.body;
