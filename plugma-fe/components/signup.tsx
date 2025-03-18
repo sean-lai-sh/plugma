@@ -16,6 +16,7 @@ export default function SignupComp() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
+  const [showName, setShowName] = useState(false);
 
   const waitForEmailConfirmation = async (userId: string) => {
     return new Promise<void>((resolve) => {
@@ -105,15 +106,14 @@ export default function SignupComp() {
         Welcome to plugma
       </h2>
       <p className="text-neutral-600 text-sm max-w-sm mt-2 dark:text-neutral-300">
-        Login to aceternity if you can because we don&apos;t have a login flow
-        yet
+        {showName ? "Come join the fun!" : "Ready to host an event?"}
       </p>
 
       <form className="my-8" onSubmit={(e) => {
           e.preventDefault();
           handleAuth();
         }}>
-        <div className="flex flex-col md:flex-row space-y-2 md:space-y-0 md:space-x-2 mb-4">
+        {showName && <div className="flex flex-col md:flex-row space-y-2 md:space-y-0 md:space-x-2 mb-4">
           <LabelInputContainer>
             <Label htmlFor="firstname">First name</Label>
             <Input id="firstname" placeholder="John" type="text" value={firstName}
@@ -124,7 +124,7 @@ export default function SignupComp() {
             <Input id="lastname" placeholder="Smith" type="text" value={lastName}
         onChange={(e) => setLastName(e.target.value)}/>
           </LabelInputContainer>
-        </div>
+        </div>}
         <LabelInputContainer className="mb-4">
           <Label htmlFor="email">Email Address</Label>
           <Input id="email" placeholder="myself@mail.com" type="email" value={email} onChange={(e) => setEmail(e.target.value)}/>
@@ -141,7 +141,9 @@ export default function SignupComp() {
           {loading ? "Signing up..." : "Sign up →"}
           <BottomGradient />
         </button>
-
+        <a className="text-xs text-neutral-700 hover:text-neutral-800 dark:text-neutral-300 mt-4 block text-left cursor-pointer" onClick={e => setShowName(!showName)} >
+          {showName ? "Already have an account?" : "Sign up?" }
+        </a>
         <div className="bg-gradient-to-r from-transparent via-neutral-300 dark:via-neutral-700 to-transparent my-8 h-[1px] w-full" />
 
         {/* <div className="flex flex-col space-y-4">
