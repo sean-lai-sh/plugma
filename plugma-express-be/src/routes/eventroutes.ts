@@ -4,7 +4,7 @@ import { getEvents, createEvent, blastEmail, predictRSVP } from "../controllers/
 const router: Router = Router();
 
 router.get("/", getEvents);
-router.post("/", createEvent);
+router.post("/create", createEvent);
 router.post("/blast", blastEmail);
 router.post("/predict", predictRSVP);
 
