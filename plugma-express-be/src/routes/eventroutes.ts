@@ -1,10 +1,10 @@
 import { Router } from "express";
-import { getEvents, createEvent, blastEmail, predictRSVP } from "../controllers/eventController";
+import { getEvents, createEventController, blastEmail, predictRSVP } from "../controllers/eventController";
 
 const router: Router = Router();
 
 router.get("/", getEvents);
-router.post("/create", createEvent);
+router.post("/create", createEventController);
 router.post("/blast", blastEmail);
 router.post("/predict", predictRSVP);
 
