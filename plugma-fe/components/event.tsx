@@ -1,3 +1,4 @@
+import { fetchUserEvents } from "@/lib/supabaseHelper.ts/fetchUserEvents";
 import { supabase } from "../lib/supabaseClient";
 import { GetServerSideProps } from "next";
 
@@ -28,7 +29,9 @@ export default function Home({ events }: HomeProps) {
 
 // Fetch events at build time (SSR)
 export const getServerSideProps: GetServerSideProps = async () => {
-  const { data: events, error } = await supabase.from("events").select("*");
+  const { data: events, error } = await fetchUserEvents(
+    
+  );
 
   if (error) {
     console.error("Error fetching events:", error.message);
