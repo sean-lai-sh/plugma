@@ -22,9 +22,9 @@ NextJS : I'm comfortable with this so its more from a comfort perspective alongs
 
 TailwindCSS : Used for Shadcn components and love the way I can write inline CSS
 
-ExpressJS : Mainly for speed in doing concurrent events (most of the time people are creating events or joining them, the event analytics is for the hosters)
+ExpressJS : Mainly for speed in doing concurrent events (most of the time people are creating events or joining them, the event analytics is for the hosters). When building past MVP will allow me to handle blasting out emails and or other concurrent applications with ease.
 
-fastAPI : run my ML computations in a python microservice since python has more developed access to models such as XGBoosting for tabular data and I'll leverage it to do my LLM calls
+fastAPI : run my ML computations in a python microservice since python has more developed access to models such as XGBoosting for tabular data and I'll leverage it to do my LLM calls. 
 
 ## Design Considerations ##
 
