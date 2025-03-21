@@ -92,7 +92,7 @@ export default function Dashboard() {
           <EmptyState />
           <h2 className="mt-8 text-2xl font-medium text-slate-600">No Upcoming Events</h2>
           <p className="mt-2 text-slate-500">You have no upcoming events. Why not host one?</p>
-          <Button className="mt-8 bg-white text-black hover:bg-slate-100" size="lg">
+          <Button className="mt-8 bg-white text-black hover:bg-slate-100" size="lg" onClick={() => router.push('/create')}>
             <Plus className="mr-1 h-4 w-4" />
             Create Event
           </Button>

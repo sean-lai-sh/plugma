@@ -1,9 +1,11 @@
 import React from 'react'
 import CreateEventForm from '@/components/createEvent';
+import DashboardNavbar from '@/components/dashboardnavbar';
 const CreateEventPage = () => {
 
   return (
-    <div>CreateEventPage
+    <div>
+      <DashboardNavbar />
       <CreateEventForm />
     </div>
   )
