@@ -12,15 +12,18 @@ export const eventPageFetch = async (req: Request, res: Response) => {
         const { data, error } = await supabase.rpc('get_event_details',{
             event_uuid: slug
         })
-        if(error) {
+        console.log(error);
+        console.log(data);
+        if(!data) {
             console.error(error);
-            res.status(500).json({ error: "Failed to fetch event page data" });
+            res.status(500).json({ error: "Failed to fetch event page data due to error" });
             return;
         }
         console.log("Successfully fetched event page data:", data);
         res.status(200).json(data);
+        return;
     }catch(error){
-        res.status(500).json({ error: "Failed to fetch event page data" });
+        res.status(500).json({ error: "Failed to fetch event page data due to " + error });
         return;
     }
 };
