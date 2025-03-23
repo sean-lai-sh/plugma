@@ -6,7 +6,6 @@ import { formatDate } from 'date-fns';
 import { Separator } from "@/components/ui/separator";
 import LocationMap from "@/components/locationMap";
 import EventNavbar from "@/components/eventNavbar";
-import { redirect } from "next/navigation";
 import RsvpButton from "@/components/general-event/rsvpbutton";
 
 
@@ -16,7 +15,7 @@ export default async function EventPage({ params }: { params: { slug: string } }
   });
   console.log("Response", res.status);
   console.log("res", res);
-  if (res == null || res.status === 404) {
+  if (res == null || !res.ok) {
     return null;
   }
 

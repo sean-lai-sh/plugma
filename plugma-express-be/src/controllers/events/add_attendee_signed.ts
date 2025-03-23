@@ -20,8 +20,9 @@ export const add_attendee_signed = async (req: Request, res: Response) => {
             attended: false
           });
         console.log(error, data);
-        if(!data) {
+        if(error) {
             console.error(error);
+            
             res.status(500).json({ error: "Failed to add attendee due to error" });
             return;
         }

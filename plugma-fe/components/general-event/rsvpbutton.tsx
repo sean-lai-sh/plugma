@@ -133,19 +133,22 @@ const RsvpButton: React.FC<RsvpButtonProps> = ({ eventId, eventName }) => {
     resetForm();
   };
 
-  // 🔄 Check if already registered
   useEffect(() => {
     const checkRegister = async () => {
+      console.log('user', user);
+      console.log('loading', loading);
       if (!user || loading) return;
-
+      console.log('Checking registration status...');
       const param = new URLSearchParams({
         event_id: eventId,
         user_id: user.id,
       });
 
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_ROUTE}/events/checkattendee/?${param.toString()}`);
+      console.log('Response status:', response);
       if (response.ok) {
         setIsRegistered(true);
+        console.log('User is already registered for the event');
       } else {
         setIsRegistered(false);
         setStep('rsvp');
