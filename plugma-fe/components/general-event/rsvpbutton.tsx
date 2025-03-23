@@ -85,7 +85,7 @@ const RsvpButton: React.FC<RsvpButtonProps> = ({ eventId, eventName }) => {
       user_id: verifiedUser.id,
     });
 
-    const response = await fetch(`http://localhost:8000/api/events/add_attendee/?${params.toString()}`);
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_ROUTE}/events/add_attendee/?${params.toString()}`);
 
     if (response.ok) {
       toast({
@@ -113,7 +113,7 @@ const RsvpButton: React.FC<RsvpButtonProps> = ({ eventId, eventName }) => {
       user_id: user.id,
     });
 
-    const response = await fetch(`http://localhost:8000/api/events/add_attendee_signed/?${params.toString()}`);
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_ROUTE}/events/add_attendee_signed/?${params.toString()}`);
 
     if (response.ok) {
       toast({
@@ -143,7 +143,7 @@ const RsvpButton: React.FC<RsvpButtonProps> = ({ eventId, eventName }) => {
         user_id: user.id,
       });
 
-      const response = await fetch(`http://localhost:8000/api/events/checkattendee/?${param.toString()}`);
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_ROUTE}/events/checkattendee/?${param.toString()}`);
       if (response.ok) {
         setIsRegistered(true);
       } else {
