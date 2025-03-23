@@ -88,7 +88,7 @@ const EventDashboard = () => {
             const user_id = user.id;
             const comm_name = currCommName; // Replace with actual community name if available
             const params = new URLSearchParams({ user_id, comm_name })
-            const response = await fetch(`http://localhost:8000/api/ds/getcommid/?${params.toString()}`);
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_ROUTE}/api/ds/getcommid/?${params.toString()}`);
             const data = await response.json();
             console.log(data);
             // extract community ID from the response and set it in state
@@ -103,7 +103,7 @@ const EventDashboard = () => {
     
       const getcommevents = async () => {
         const params = new URLSearchParams({ user_id: userID, comm_id: communityID });
-        const response = await fetch(`http://localhost:8000/api/ds/recentcommunity/?${params.toString()}`);
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_ROUTE}/api/ds/recentcommunity/?${params.toString()}`);
         const data = await response.json();
         console.log(data);
         setRecentEvents(data);

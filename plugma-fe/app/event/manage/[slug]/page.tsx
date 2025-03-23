@@ -4,9 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabaseClient';
 import { EventType } from '@/lib/utils';
-import LoadingOverlay from '@/components/general/LoadingOverlay';
 import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 
 export default function EventPageClient({ params }: { params: { slug: string } }) {
     const [event, setEvent] = useState<EventType | null>(null);
@@ -26,7 +24,7 @@ export default function EventPageClient({ params }: { params: { slug: string } }
       const userID = user.id;
       const params = new URLSearchParams({ slug, userID })
       const res = await fetch(
-          `http://localhost:8000/api/events/manageEvent/?${params.toString()}`,
+          `${process.env.NEXT_PUBLIC_API_ROUTE}/events/manageEvent/?${params.toString()}`,
       );
 
       if (res.status === 404) {

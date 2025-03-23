@@ -5,14 +5,13 @@ import { Calendar, Clock, MapPin, Users } from "lucide-react";
 import { formatDate } from 'date-fns';
 import { Separator } from "@/components/ui/separator";
 import LocationMap from "@/components/locationMap";
-import Navbar from "@/components/navbar";
 import EventNavbar from "@/components/eventNavbar";
 import { redirect } from "next/navigation";
 import RsvpButton from "@/components/general-event/rsvpbutton";
 
 
 export default async function EventPage({ params }: { params: { slug: string } }) {
-  const res = await fetch(`http://localhost:8000/api/events/getEvent/${params.slug}`, {
+  const res = await fetch(`${process.env.NEXT_PUBLIC_API_ROUTE}/api/events/getEvent/${params.slug}`, {
     cache: "no-store", // ensures fresh fetch
   });
   console.log("Response", res.status);

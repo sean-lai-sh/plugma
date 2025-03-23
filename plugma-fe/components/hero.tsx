@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { ArrowRight } from "lucide-react";
+import Link from "next/link";
 
 const Hero = () => {
   return (
@@ -15,12 +15,14 @@ const Hero = () => {
             Your all-in-one platform for unforgettable events
           </h1>
           <p className="text-lg md:text-xl text-muted-foreground mb-8 max-w-2xl mx-auto animate-fade-in" style={{ animationDelay: "0.2s" }}>
-            Create beautiful landing pages, sell tickets, and manage RSVPs with the most elegant event platform on the market.
+            Practical, simple, and built for event organizers and hosts.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 animate-fade-in" style={{ animationDelay: "0.3s" }}>
-            <Button size="lg" className="bg-luma-600 hover:bg-luma-700 text-white w-full sm:w-auto">
-              Create your delightful event
-            </Button>
+            <Link href='/create' passHref>
+              <Button size="lg" className="bg-luma-600 hover:bg-luma-700 text-white w-full sm:w-auto">
+                Create your delightful event
+              </Button>
+            </Link>
             {/* <Button variant="outline" size="lg" className="group w-full sm:w-auto">
               See examples
               <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />

@@ -10,6 +10,7 @@ import  EventLocationField  from './event-form/EventLocationSelector'
 import  EventOptionsFields  from './event-form/EventOptions'
 import { ImageIcon } from 'lucide-react'
 import { useRouter } from 'next/navigation'
+import { useAuth } from '@/lib/providers/AuthProvider'
 
 
 
@@ -58,10 +59,44 @@ const defaultEvent: createEventType = {
 const CreateEventForm = () => {
     const [eventInfo, setEventInfo] = useState<createEventType>(defaultEvent)
     const [ourNewPage, setOurNewPage] = useState<string>("/create");
+    const [imageFile, setImageFile] = useState<File | null>(null);
     const router = useRouter();
+    const {user , loading} = useAuth();
     const sendEventInfo = async () => {
-        /// Call my express API to create event at api/events/create not via supabase
-        const response = await fetch('http://localhost:8000/api/events/create', {
+        if (imageFile) {
+          const formData = new FormData();
+          formData.append("file", imageFile);
+          formData.append("upload_preset", "plugma"); // your unsigned preset
+      
+          try {
+            const uploadResponse = await fetch(
+              "https://api.cloudinary.com/v1_1/djcvob55d/image/upload",
+              {
+                method: "POST",
+                body: formData,
+              }
+            );
+      
+            const uploadData = await uploadResponse.json();
+            let imageUrl = "";
+            if (uploadData.secure_url) {
+              imageUrl = uploadData.secure_url;
+              setEventInfo({
+                ...eventInfo,
+                image: imageUrl
+              })
+              console.log("Image uploaded successfully:", imageUrl);
+            } else {
+              console.error("Cloudinary upload failed:", uploadData);
+              return;
+            }
+          } catch (err) {
+            console.error("Image upload error:", err);
+            return;
+          }
+        }
+        // /// Call my express API to create event at api/events/create not via supabase
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_ROUTE}/events/create`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -82,9 +117,12 @@ const CreateEventForm = () => {
 
     useEffect(() => {
         const fetchUser = async () => {
-            const { data: { user } } = await supabase.auth.getUser();
-            if (user) {
-                setEventInfo({ ...eventInfo, creator_id: user.id });
+            if(user){
+              setEventInfo({
+                ...eventInfo,
+                creator_id: user.id
+              })
+              return;
             }
         };
         const moveToNewPage = () => {
@@ -108,12 +146,9 @@ const CreateEventForm = () => {
       const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (file) {
-          const reader = new FileReader();
-          reader.onload = () => {
-            const result = reader.result as string;
-            handleInputChange("image", result);
-          };
-          reader.readAsDataURL(file);
+          setImageFile(file);
+          const previewUrl = URL.createObjectURL(file);
+          handleInputChange("image", previewUrl); // for preview only
         }
       };
 
@@ -125,12 +160,14 @@ const CreateEventForm = () => {
         <main className="max-w-7xl mx-auto px-4 py-12">
           <div className="flex flex-col lg:flex-row gap-8">
             {/* Left Column - Event Preview */}
-            <div className="lg:w-1/3 sticky top-24 self-start">
-              <img src={eventInfo.image} className='rounded-lg' />
+            <div className="lg:w-[2/9] sticky top-24 self-start">
+              <img src={eventInfo.image || 'https://images.unsplash.com/photo-1588196749597-9ff075ee6b5b?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80'} className='rounded-lg
+               lg:w-[500px] lg:h-[300px] md:w-[420px] object-cover shadow-lg' alt='Event Preview
+              ' />
             </div>
   
             {/* Right Column - Event Form */}
-            <div className="lg:w-2/3">
+            <div className="lg:w-[7/9]">
               <form 
                 className="space-y-8"
                 onSubmit={(e) => {
