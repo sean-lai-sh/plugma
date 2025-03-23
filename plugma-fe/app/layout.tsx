@@ -1,8 +1,10 @@
+
 import type { Metadata } from "next";
 import { ClerkProvider } from "@clerk/nextjs";
 import "./globals.css";
 import Head from "next/head";
 import { Toaster } from "@/components/ui/toaster";
+import { AuthProvider } from "@/lib/providers/AuthProvider";
 
 // Define fonts using Next.js font optimization
 
@@ -28,6 +30,8 @@ export const metadata: Metadata = {
 export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
+  // Save the current path before the route changes
+
   return (
     <html lang="en">
       <Head>
@@ -35,8 +39,10 @@ export default function RootLayout({
         <meta name="viewport" content="width=device-width, initial-scale=1" />
       </Head>
       <body className={` antialiased`}>
-        {children}
-        <Toaster/>
+        <AuthProvider>
+          {children}
+          <Toaster/>
+        </AuthProvider>
       </body>
     </html>
   );

@@ -1,59 +1,59 @@
 'use client';
-import React, {useState, useEffect} from 'react';
+
+import React from 'react';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { AlertDialogCancel, AlertDialogFooter } from '@/components/ui/alert-dialog';
-import { Label } from '@/components/ui/label';
-import { cn } from '@/lib/utils';
-import { useRouter } from 'next/navigation';
-import { supabase } from '@/lib/supabaseClient';
-import { useToast } from "@/hooks/use-toast";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { useForm } from 'react-hook-form';
 
-export type NameFormData = {
-    firstName: string;
-    lastName: string;
-};
-
-interface NameFormProps {
-  onNext: (data: NameFormData) => void;
-  onCancel: () => void;
+// Define the form data type
+export interface NameFormData {
+  firstName: string;
+  lastName: string;
 }
+
 interface NameFormProps {
   onNext: (data: NameFormData) => void;
   onCancel: () => void;
 }
 
 const NameForm: React.FC<NameFormProps> = ({ onNext, onCancel }) => {
-  const [firstName, setFirstName] = useState("");
-  const [lastName, setLastName] = useState("");
+  const form = useForm<NameFormData>({
+    defaultValues: {
+      firstName: "",
+      lastName: "",
+    },
+  });
+
   const onSubmit = (data: NameFormData) => {
-    onNext(data);
-  }; 
+    // Simple manual validation
+    let isValid = true;
+    
+    if (data.firstName.length < 2) {
+      form.setError("firstName", { 
+        type: "manual", 
+        message: "First name must be at least 2 characters." 
+      });
+      isValid = false;
+    }
+    
+    if (data.lastName.length < 2) {
+      form.setError("lastName", { 
+        type: "manual", 
+        message: "Last name must be at least 2 characters." 
+      });
+      isValid = false;
+    }
+    
+    if (isValid) {
+      onNext(data);
+    }
+  };
+
   return (
     <Form {...form}>
-      <form onSubmit={(e) => {
-        e.preventDefault();
-        () => onSubmit({
-          firstName: firstName,
-          lastName: lastName,
-        });
-
-      }} className="space-y-4 py-4">
-        {/* <div className="grid grid-cols-1 gap-4">
-        <div className="flex flex-col md:flex-row space-y-2 md:space-y-0 md:space-x-2 mb-4 w-full">
-          <LabelInputContainer className='w-full'>
-            <Label htmlFor="firstname">First name</Label>
-            <Input id="firstname" placeholder="John" type="text" value={firstName}
-        onChange={(e) => setFirstName(e.target.value)} />
-          </LabelInputContainer>
-          <LabelInputContainer className='w-full'>
-            <Label htmlFor="lastname">Last name</Label>
-            <Input id="lastname" placeholder="Smith" type="text" value={lastName}
-        onChange={(e) => setLastName(e.target.value)}/>
-          </LabelInputContainer>
-        </div>
-        </div> */}
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 py-4">
         <div className="grid grid-cols-2 gap-4">
           <FormField
             control={form.control}
@@ -69,7 +69,7 @@ const NameForm: React.FC<NameFormProps> = ({ onNext, onCancel }) => {
             )}
           />
           <FormField
-            control={form.control}
+          control={form.control}
             name="lastName"
             render={({ field }) => (
               <FormItem>
@@ -86,7 +86,8 @@ const NameForm: React.FC<NameFormProps> = ({ onNext, onCancel }) => {
           <AlertDialogCancel onClick={onCancel}>Cancel</AlertDialogCancel>
           <Button type="submit">Continue</Button>
         </AlertDialogFooter>
-      </form></Form>
+      </form>
+    </Form>
   );
 };
 

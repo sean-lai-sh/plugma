@@ -8,7 +8,7 @@ import LocationMap from "@/components/locationMap";
 import Navbar from "@/components/navbar";
 import EventNavbar from "@/components/eventNavbar";
 import { redirect } from "next/navigation";
-import RsvpButton from "@/components/general-event/rsvpButton";
+import RsvpButton from "@/components/general-event/rsvpbutton";
 
 
 export default async function EventPage({ params }: { params: { slug: string } }) {
@@ -95,11 +95,12 @@ export default async function EventPage({ params }: { params: { slug: string } }
                     </div>
                 </div>
             </div>
-            <RsvpButton eventId={params.slug}
-                eventName={event.event_name}
-                isRegistered={false} // Placeholder, replace with actual registration status if available
-                isSignedIn={false} // Placeholder, replace with actual sign-in status if available
-            />
+            {event && (
+                <RsvpButton
+                    eventId={params.slug}
+                    eventName={event.event_name}
+                />
+            )}
             <Separator className="my-3"/>
             <div className="flex flex-col md:flex-row md:justify-between gap-6 mb-4 pt-2">
                 {/* Host section */}
@@ -130,7 +131,8 @@ export default async function EventPage({ params }: { params: { slug: string } }
                   {event.capacity ?(<div>
                     <h3 className="font-medium">Capacity</h3>
                     <p className="text-gray-600">{event.capacity}</p>
-                  </div>) :<p className="text-gray-600">
+                  </div>) :
+                  <p className="text-gray-600">
                     Unlimited Entry
                   </p> }
                   

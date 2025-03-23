@@ -8,6 +8,19 @@ import { useState } from "react";
 import { supabase } from "../lib/supabaseClient";
 import { useToast } from "@/hooks/use-toast";
 
+export const storePrevPath = () => {
+  if (typeof window !== 'undefined') {
+    sessionStorage.setItem('prevPath', window.location.pathname);
+  }
+};
+
+export const getPrevPath = (): string | null => {
+  if (typeof window !== 'undefined') {
+    return sessionStorage.getItem('prevPath');
+  }
+  return null;
+};
+
 export default function SignupComp() {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
@@ -42,9 +55,20 @@ export default function SignupComp() {
       password,
     });
     console.log(signInData, signInError);
+    console.log()
+    const prev = getPrevPath();
+    console.log("prev", prev);
     if (signInData.user) {
       // User exists & logged in successfully
-      router.push("/dashboard");
+      
+
+      if (prev === "/") {
+        router.push("/dashboard");
+      } else if (prev) {
+        router.push(prev);
+      } else {
+        router.push("/"); // if no previous info
+      }
       setLoading(false);
       return;
     }
@@ -66,7 +90,17 @@ export default function SignupComp() {
         // New user created → Ask them to check their email
         toast({title:"Check your email to confirm your account.",description:"Please check your inbox and click on the confirmation link to activate your account.",duration:5000});
         await waitForEmailConfirmation(signUpData.user.id);
-        router.push("/dashboard");
+        // "https://plugma.io/"
+
+
+        /// if root redirect to dashboard
+        if (prev === "/") {
+          router.push("/dashboard");
+        } else if (prev) {
+          router.push(prev);
+        } else {
+          router.push("/"); // if no previous info
+        }
       } else {
         // Sign-up failed → Show error
         setError(signUpError?.message || "An error occurred.");
@@ -97,7 +131,16 @@ export default function SignupComp() {
 
       if (user) {
         setUser(user);
-        router.push("/dashboard"); // Redirect if signed in
+        // if previous was main page redirect to dashboard
+        const prev = getPrevPath();
+
+        if (prev === "/") {
+          router.push("/dashboard");
+        } else if (prev) {
+          router.push(prev);
+        } else {
+          router.push("/"); // if no previous info
+        }
       }
     };
     fetchUser();
