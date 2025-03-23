@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { supabase } from "../lib/supabaseClient";
-import Cookies from "js-cookie";
+import { useToast } from "@/hooks/use-toast";
 
 export default function SignupComp() {
   const [firstName, setFirstName] = useState("");
@@ -17,6 +17,7 @@ export default function SignupComp() {
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
   const [showName, setShowName] = useState(false);
+  const {toast} = useToast();
 
   const waitForEmailConfirmation = async (userId: string) => {
     return new Promise<void>((resolve) => {
@@ -34,13 +35,13 @@ export default function SignupComp() {
   const handleAuth = async () => {
     setLoading(true);
     setError(null);
-  
+    console.log("fetching user");
     // Try signing in the user first
     const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
-  
+    console.log(signInData, signInError);
     if (signInData.user) {
       // User exists & logged in successfully
       router.push("/dashboard");
@@ -59,10 +60,11 @@ export default function SignupComp() {
           }
         }
       });
-  
+      console.log("signUpData", signUpData);
+      console.log("signUpError", signUpError);
       if (signUpData.user) {
         // New user created → Ask them to check their email
-        alert("Check your email to confirm your account.");
+        toast({title:"Check your email to confirm your account.",description:"Please check your inbox and click on the confirmation link to activate your account.",duration:5000});
         await waitForEmailConfirmation(signUpData.user.id);
         router.push("/dashboard");
       } else {
@@ -112,6 +114,7 @@ export default function SignupComp() {
       <form className="my-8" onSubmit={(e) => {
           e.preventDefault();
           handleAuth();
+          
         }}>
         {showName && <div className="flex flex-col md:flex-row space-y-2 md:space-y-0 md:space-x-2 mb-4">
           <LabelInputContainer>
@@ -138,7 +141,8 @@ export default function SignupComp() {
           className="bg-gradient-to-br relative group/btn from-black dark:from-zinc-900 dark:to-zinc-900 to-neutral-600 block dark:bg-zinc-800 w-full text-white rounded-md h-10 font-medium shadow-[0px_1px_0px_0px_#ffffff40_inset,0px_-1px_0px_0px_#ffffff40_inset] dark:shadow-[0px_1px_0px_0px_var(--zinc-800)_inset,0px_-1px_0px_0px_var(--zinc-800)_inset]"
           type="submit"
         >
-          {loading ? "Signing up..." : "Sign up →"}
+          {showName ? (loading ? "Signing up..." : "Sign up →")
+                : (loading ? "Signing In..." : "Sign In →")}
           <BottomGradient />
         </button>
         <a className="text-xs text-neutral-700 hover:text-neutral-800 dark:text-neutral-300 mt-4 block text-left cursor-pointer" onClick={e => setShowName(!showName)} >
@@ -169,7 +173,7 @@ const BottomGradient = () => {
   );
 };
 
-const LabelInputContainer = ({
+export const LabelInputContainer = ({
   children,
   className,
 }: {

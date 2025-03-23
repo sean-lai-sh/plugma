@@ -8,6 +8,11 @@ import { Button } from "@/components/ui/button";
 import { Calendar, Plus, Sparkles, Tickets } from "lucide-react";
 import EmptyState from "../../components/ui/EmptyState";
 import DashboardNavbar from "@/components/dashboardnavbar";
+import EventTimeline from "@/components/eventTimeline";
+import Link from "next/link";
+import { getMockEvents } from "@/lib/consts";
+import { mock } from "node:test";
+
 
 type UserCTA = {
   button_text: string;
@@ -38,36 +43,53 @@ export default function Dashboard() {
           window.removeEventListener('scroll', handleScroll);
         };
       }, [scrolled]);
-  const [user, setUser] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
-  const [data, setData] = useState<any[]>([]);
-  const router = useRouter();
+    const [user, setUser] = useState<any>(null);
+    const [loading, setLoading] = useState(true);
+    const [data, setData] = useState<any[]>([]);
+    const router = useRouter();
 
-//   useEffect(() => {
-//     // Fetch user session
-//     const fetchUser = async () => {
-//       const {
-//         data: { user },
-//       } = await supabase.auth.getUser();
+    useEffect(() => {
+      // Fetch user session
+      const fetchUser = async () => {
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
 
-//       if (!user) {
-//         router.push("/sign-in"); // Redirect if not signed in
-//       } else {
-//         setUser(user);
-//         fetchData(); // Fetch Supabase data
-//       }
+        if (!user) {
+          router.push("/sign-in"); // Redirect if not signed in
+        } else {
+          setUser(user);
+          fetchData(); // Fetch Supabase data
+        }
 
-//       setLoading(false);
-//     };
+        setLoading(false);
+      };
 
-//     fetchUser();
-//   }, [router]);
-
-  // Fetch some example data from Supabase
-  const fetchData = async () => {
-    const { data, error } = await supabase.from("events").select("*");
-    if (!error) setData(data);
-  };
+      fetchUser();
+    }, [router]);
+    const [activeTab, setActiveTab] = useState<string>("upcoming");
+    const [hasEvents, setHasEvents] = useState<boolean>(true); // For demonstration, toggle to false to see empty state
+    const mockEventDays = getMockEvents();
+    let pastEventDays: any[] = [];
+    if(mockEventDays.length === 0) setHasEvents(false);
+    else{
+      pastEventDays = [...mockEventDays]
+      .reverse()
+      .map(day => {
+        const pastDate = new Date(day.date);
+        pastDate.setMonth(pastDate.getMonth() - 1);
+        return {
+          ...day,
+          date: pastDate
+        };
+      });
+    }
+    // Simulating past events by reversing the array and changing dates
+    // Fetch some example data from Supabase
+      const fetchData = async () => {
+        const { data, error } = await supabase.from("events").select("*");
+        if (!error) setData(data);
+      };
 
   return (
     <div className="min-h-screen w-full bg-[#F1F0FB]">
@@ -76,10 +98,14 @@ export default function Dashboard() {
       <DashboardNavbar/>
 
       {/* Main Content */}
-      <main className="container mx-auto px-4 py-8 lg:py-2 md:mt-10 lg:min-h-[70vh] min-h-[80vh] ">
+      <main className="container mx-auto px-4 py-8">
         <div className="mb-8 flex items-center justify-between">
           <h1 className="text-3xl font-bold text-slate-900">Events</h1>
-          <Tabs defaultValue="upcoming" className="w-auto">
+          <Tabs 
+            value={activeTab} 
+            onValueChange={setActiveTab}
+            className="w-auto"
+          >
             <TabsList className="grid w-[200px] grid-cols-2">
               <TabsTrigger value="upcoming">Upcoming</TabsTrigger>
               <TabsTrigger value="past">Past</TabsTrigger>
@@ -87,17 +113,31 @@ export default function Dashboard() {
           </Tabs>
         </div>
 
-        {/* Empty State */}
-        <div className="mt-20 flex flex-col items-center justify-center">
-          <EmptyState />
-          <h2 className="mt-8 text-2xl font-medium text-slate-600">No Upcoming Events</h2>
-          <p className="mt-2 text-slate-500">You have no upcoming events. Why not host one?</p>
-          <Button className="mt-8 bg-white text-black hover:bg-slate-100" size="lg" onClick={() => router.push('/create')}>
-            <Plus className="mr-1 h-4 w-4" />
-            Create Event
-          </Button>
-        </div>
-        
+        {hasEvents ? (
+          <div className="max-w-4xl mx-auto">
+            <EventTimeline days={activeTab === "upcoming" ? mockEventDays : pastEventDays} />
+            <div className="flex justify-center mt-8">
+              <Link href="/create">
+                <Button className="bg-primary text-white" size="lg">
+                  <Plus className="mr-2 h-4 w-4" />
+                  Create New Event
+                </Button>
+              </Link>
+            </div>
+          </div>
+        ) : (
+          <div className="mt-16 flex flex-col items-center justify-center">
+            <EmptyState />
+            <h2 className="mt-8 text-2xl font-medium text-slate-600">No Upcoming Events</h2>
+            <p className="mt-2 text-slate-500">You have no upcoming events. Why not host one?</p>
+            <Link href="/create">
+              <Button className="mt-8 bg-white text-black hover:bg-slate-100" size="lg">
+                <Plus className="mr-1 h-4 w-4" />
+                Create Event
+              </Button>
+            </Link>
+          </div>
+        )}
       </main>
 
       {/* Footer */}

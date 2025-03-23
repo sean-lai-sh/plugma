@@ -4,6 +4,11 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Calendar, Clock, MapPin, Users } from "lucide-react";
 import { formatDate } from 'date-fns';
 import { Separator } from "@/components/ui/separator";
+import LocationMap from "@/components/locationMap";
+import Navbar from "@/components/navbar";
+import EventNavbar from "@/components/eventNavbar";
+import { redirect } from "next/navigation";
+import RsvpButton from "@/components/general-event/rsvpButton";
 
 
 export default async function EventPage({ params }: { params: { slug: string } }) {
@@ -12,8 +17,9 @@ export default async function EventPage({ params }: { params: { slug: string } }
   });
   console.log("Response", res.status);
   
-  if (!res.ok) {
-    return <div className="p-6 text-red-500">Event not found.</div>;
+  if (res == null || !res.ok) {
+    redirect('/');
+    return null;
   }
 
   const data = await res.json();
@@ -45,6 +51,7 @@ export default async function EventPage({ params }: { params: { slug: string } }
 
   return (
     <div className="bg-gray-50 min-h-screen pb-20">
+        <EventNavbar />
       {/* Header with image */}
       <div className="w-full bg-gray-900 h-[40vh] relative overflow-hidden">
         {event.image ? (
@@ -60,42 +67,64 @@ export default async function EventPage({ params }: { params: { slug: string } }
       </div>
 
       {/* Content container */}
-      <div className="container mx-auto px-4 max-w-4xl -mt-16 relative z-10">
+      <div className="container mx-auto px-4 max-w-4xl -mt-40 relative z-10">
         <div className="bg-white rounded-lg shadow-xl overflow-hidden">
           {/* Event preview card */}
           <div className="p-6 md:p-8">
             <h1 className="text-3xl font-bold mb-4">{event.event_name}</h1>
             
             <div className="flex flex-col md:flex-row md:items-center text-gray-600 mb-6 gap-4">
-              <div className="flex items-center">
-                <Calendar className="mr-2 h-5 w-5" />
-                <span>{formatDate(event.event_date, 'EEEE, MMMM d, yyyy')}</span>
-              </div>
-              <div className="flex items-center">
-                <Clock className="mr-2 h-5 w-5" />
-                <span>{formatDate(event.event_date, 'h:mm a')} - {formatDate(event.end_date, 'h:mm a')}</span>
-              </div>
-            </div>
-            <Separator className="my-3"/>
-              <div className="mt-6 text-start">
-                  <p className="text-gray-500 mt-2">Hosted by:</p>
-                  {hostsPfpGeneration(event.hosts_info)}
+                <div className="flex flex-col">
+                    <div className="flex items-center mb-2">
+                        <Calendar className="mr-2 h-5 w-5" />
+                        <span>{formatDate(event.event_date, 'EEEE, MMMM d, yyyy')}</span>
+                    </div>
+                    <div className="flex items-center">
+                        <Clock className="mr-2 h-5 w-5" />
+                        <span>{formatDate(event.event_date, 'h:mm a')} - {formatDate(event.end_date, 'h:mm a')}</span>
+                    </div>
                 </div>
+                <Separator orientation="vertical" className="md:mx-4 md:h-12  text-gray-600" />
+                <div className="flex items-end">
+                    <div className="flex items-start gap-3">
+                            <MapPin className="h-5 w-5 text-gray-800 mt-0.5 flex-shrink-0" />
+                            <div>
+                                <h3 className="font-medium text-gray-800">{event.location_name}</h3>
+                                <p className="text-sm text-gray-600">{event.location_address}</p>
+                            </div>
+                    </div>
+                </div>
+            </div>
+            <RsvpButton eventId={params.slug}
+                eventName={event.event_name}
+                isRegistered={false} // Placeholder, replace with actual registration status if available
+                isSignedIn={false} // Placeholder, replace with actual sign-in status if available
+            />
             <Separator className="my-3"/>
+            <div className="flex flex-col md:flex-row md:justify-between gap-6 mb-4 pt-2">
+                {/* Host section */}
+                <div className="flex items-center">
+                    <div>
+                    <h2 className="text-sm text-gray-500 mb-2 font-medium">Hosted by:</h2>
+                    <div className="flex items-center gap-3">
+                        {hostsPfpGeneration(event.hosts_info)}
+                    </div>
+                    </div>
+                </div>
+
+            </div>
+            
+            {/* Location section */}
+            
+            
             <div className="">
-              <div className="prose max-w-none">
+              <div className=" max-w-none">
+                <h2 className="text-gray-600 mt-4 font-medium">About the Event</h2>
+                <Separator className="mb-3"/>
                 <p className="text-gray-700 mb-8">{event.event_description}</p>
               </div>
 
               <div className="space-y-6 mb-8">
-                <div className="flex items-start">
-                  <MapPin className="mr-4 h-6 w-6 text-gray-400 mt-0.5" />
-                  <div>
-                    <h3 className="font-medium">{event.location_name}</h3>
-                    <p className="text-gray-600">{event.location_address}</p>
-                  </div>
-                </div>
-
                 <div className="flex items-start">
                   <Users className="mr-4 h-6 w-6 text-gray-400 mt-0.5" />
                   {event.capacity ?(<div>
@@ -106,11 +135,20 @@ export default async function EventPage({ params }: { params: { slug: string } }
                   </p> }
                   
                 </div>
+                <div className="space-y-6 mb-8">
+                    {/* <MapPin className="mr-4 h-6 w-6 text-gray-400 mt-0.5" />
+                    <div>
+                        <h3 className="font-medium">{event.location_name}</h3>
+                        <p className="text-gray-600">{event.location_address}</p>
+                    </div> */}
+                    {/* Location Map */}
+                    <LocationMap 
+                        locationName={event.location_name}
+                        address={event.location_address}
+                        mapHeight="300px"
+                    />
+                </div>   
               </div>
-
-              <Button className="w-full py-6 text-lg">RSVP to this event</Button>
-
-              
             </div>
           </div>
         </div>

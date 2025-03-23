@@ -1,3 +1,4 @@
+'use client'
 import React from 'react'
 import Link from 'next/link'
 import { ArrowUpRight } from "lucide-react";
@@ -5,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import Profile from '@/components/ui/profile'
 import {redirect} from 'next/navigation'
 
-const AnalyticNavBar = () => {
+const EventNavbar = () => {
   return (
     <header className="border-b border-slate-200 bg-white">
         <div className="container mx-auto px-4 md:px-6 py-6">
@@ -16,10 +17,6 @@ const AnalyticNavBar = () => {
                 <div className="ml-1 w-2 h-2 bg-luma-600 rounded-full"></div>
             </a>
             <div className="flex items-center space-x-6">
-            <Link href="/dashboard" className="flex items-center font-medium text-black">
-                <ArrowUpRight className="mr-2 h-5 w-5" />
-                Events
-            </Link>
             </div>
             <div className='flex items-center space-x-5'>
               <Link href="/create">
@@ -33,4 +30,4 @@ const AnalyticNavBar = () => {
   )
 }
 
-export default AnalyticNavBar
+export default EventNavbar

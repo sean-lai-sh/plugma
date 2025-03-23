@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { ClerkProvider } from "@clerk/nextjs";
 import "./globals.css";
 import Head from "next/head";
+import { Toaster } from "@/components/ui/toaster";
 
 // Define fonts using Next.js font optimization
 
@@ -35,6 +36,7 @@ export default function RootLayout({
       </Head>
       <body className={` antialiased`}>
         {children}
+        <Toaster/>
       </body>
     </html>
   );

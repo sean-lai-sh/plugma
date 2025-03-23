@@ -28,14 +28,14 @@ const DashboardNavbar = () => {
                                 <Tickets className="mr-2 h-5 w-5" />
                                 <p className="hidden md:inline">Events</p>
                             </a>
-                            <a href="#" className={`${defaultNavBar} hidden md:flex ${isActive("/calendar")}`}>
+                            {/* <a href="#" className={`${defaultNavBar} hidden md:flex ${isActive("/calendar")}`}>
                                 <Calendar className="mr-2 h-5 w-5" />
                                 <p className="hidden md:inline">Calendar</p>
                             </a>
                             <a href="#" className={`${defaultNavBar} ${isActive("/discover")}`}>
                                 <Sparkles className="mr-2 h-5 w-5" />
                                 <p className="hidden md:inline">Discover</p>
-                            </a>
+                            </a> */}
                             <a href="/dashboard/analytics" className={`${defaultNavBar} ${isActive("/dashboard/analytics")}`}>
                                 <ChartLine className="mr-2 h-5 w-5" />
                                 <p className="hidden md:inline">Analyze</p>

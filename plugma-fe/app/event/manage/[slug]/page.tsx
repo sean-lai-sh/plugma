@@ -23,20 +23,20 @@ export default function EventPageClient({ params }: { params: { slug: string } }
         return;
       }
         
-        const userID = user.id;
-        const params = new URLSearchParams({ slug, userID })
-        const res = await fetch(
-            `http://localhost:8000/api/events/manageEvent/?${params.toString()}`,
-        );
+      const userID = user.id;
+      const params = new URLSearchParams({ slug, userID })
+      const res = await fetch(
+          `http://localhost:8000/api/events/manageEvent/?${params.toString()}`,
+      );
 
-        if (res.status === 404) {
-            router.push("/");
-            return;
-        }
+      if (res.status === 404) {
+          router.push("/");
+          return;
+      }
 
-        const data = await res.json();
-        setEvent(Array.isArray(data) ? data[0] : data);
-        setIsLoading(false);
+      const data = await res.json();
+      setEvent(Array.isArray(data) ? data[0] : data);
+      setIsLoading(false);
     };
 
     fetchEvent();
