@@ -11,13 +11,12 @@ import RsvpButton from "@/components/general-event/rsvpbutton";
 
 
 export default async function EventPage({ params }: { params: { slug: string } }) {
-  const res = await fetch(`${process.env.NEXT_PUBLIC_API_ROUTE}/api/events/getEvent/${params.slug}`, {
+  const res = await fetch(`${process.env.NEXT_PUBLIC_API_ROUTE}/events/getEvent/${params.slug}`, {
     cache: "no-store", // ensures fresh fetch
   });
   console.log("Response", res.status);
-  
-  if (res == null || !res.ok) {
-    redirect('/');
+  console.log("res", res);
+  if (res == null || res.status === 404) {
     return null;
   }
 
