@@ -16,13 +16,14 @@ import EmailForm, { EmailFormData } from './EmailForm';
 import OtpForm, { OtpFormData } from './OTPForm';
 import { supabase } from '@/lib/supabaseClient';
 import { useAuth } from '@/lib/providers/AuthProvider';
+import { set } from 'date-fns';
 
 interface RsvpButtonProps {
   eventId: string;
   eventName: string;
 }
 
-type Step = 'name' | 'email' | 'verification' | 'success' | 'rsvp';
+type Step = 'name' | 'email' | 'verification' | 'success' | 'rsvp' | 'registered' | 'cancel';
 
 const RsvpButton: React.FC<RsvpButtonProps> = ({ eventId, eventName }) => {
   const [step, setStep] = useState<Step>('name');
@@ -122,10 +123,70 @@ const RsvpButton: React.FC<RsvpButtonProps> = ({ eventId, eventName }) => {
         variant: 'default',
       });
       setOpen(false);
+      setIsRegistered(true);
     } else {
       toast({
         title: 'RSVP Failed!',
         description: 'There was an error processing your RSVP.',
+        variant: 'destructive',
+      });
+    }
+
+    resetForm();
+  };
+
+  const update_attendee = async () => {
+    if (!user) return;
+
+    const params = new URLSearchParams({
+      event_id: eventId,
+      user_id: user.id,
+    });
+
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_ROUTE}/events/update_attendee/?${params.toString()}`);
+
+    if (response.ok) {
+      toast({
+        title: 'RSVP Successful!',
+        description: `You're confirmed for ${eventName}`,
+        variant: 'default',
+      });
+      setOpen(false);
+      setIsRegistered(true);
+    } else {
+      toast({
+        title: 'RSVP Failed!',
+        description: 'There was an error processing your RSVP.',
+        variant: 'destructive',
+      });
+    }
+
+    resetForm();
+  };
+
+  const cancelRSVPSigned = async () => {
+    if (!user) return;
+
+    const params = new URLSearchParams({
+      event_id: eventId,
+      user_id: user.id,
+    });
+
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_ROUTE}/events/cancel_attendee/?${params.toString()}`);
+
+    if (response.ok) {
+      setIsRegistered(false);
+      setStep('cancel');
+      toast({
+        title: 'Removed you from the event',
+        description: `Hope to see you next time!`,
+        variant: 'default',
+      });
+      setOpen(false);
+    } else {
+      toast({
+        title: 'Cancelling Failed!',
+        description: 'The gremlins are at it again. Please try again later.',
         variant: 'destructive',
       });
     }
@@ -146,9 +207,15 @@ const RsvpButton: React.FC<RsvpButtonProps> = ({ eventId, eventName }) => {
 
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_ROUTE}/events/checkattendee/?${param.toString()}`);
       console.log('Response status:', response);
-      if (response.ok) {
+      const data = await response.json();
+      console.log('Data:', data);
+      if (response.ok && (data != "not registered" && data != 'no')) {
         setIsRegistered(true);
+        setStep('registered');
         console.log('User is already registered for the event');
+      }else if(data =='no'){
+        setIsRegistered(false);
+        setStep('cancel');
       } else {
         setIsRegistered(false);
         setStep('rsvp');
@@ -156,15 +223,35 @@ const RsvpButton: React.FC<RsvpButtonProps> = ({ eventId, eventName }) => {
     };
 
     checkRegister();
-  }, [eventId, user, loading]);
+  }, [eventId, user, loading, step]);
 
   // ✅ Render Registered State
   if (user && isRegistered) {
     return (
-      <Button disabled className="w-full py-6 text-lg flex items-center">
-        <Check className="mr-2 h-5 w-5" />
-        You're registered
-      </Button>
+      <AlertDialog open={open} onOpenChange={handleDialogChange}>
+        <AlertDialogTrigger asChild>
+          <Button className="w-full py-6 text-lg flex items-center justify-center bg-gray-600 hover:bg-black transtion-all duraiton-300 ease-in-out">
+            <Check className="mr-2 h-5 w-5" />
+            You're registered
+          </Button>
+        </AlertDialogTrigger>
+      <AlertDialogContent className="max-w-md">
+        <AlertDialogHeader>
+          <AlertDialogTitle>
+            Change your RSVP?
+          </AlertDialogTitle>
+          <AlertDialogDescription>
+             Life happens, and plans change. If you need to update your RSVP, just let us know!
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <div className="flex justify-end space-x-4">
+          <Button variant="outline" onClick={() => setOpen(false)}>
+            Back
+          </Button>
+          <Button onClick={cancelRSVPSigned} variant={'destructive'}>Cancel </Button>
+        </div>
+      </AlertDialogContent>
+    </AlertDialog>
     );
   }
 
@@ -183,19 +270,21 @@ const RsvpButton: React.FC<RsvpButtonProps> = ({ eventId, eventName }) => {
             {step === 'email' && 'Enter your email'}
             {step === 'verification' && 'Verify your email'}
             {step === 'rsvp' && 'Register for the event'}
+            {step === 'cancel' && 'Change your RSVP?'}
           </AlertDialogTitle>
           <AlertDialogDescription>
             {step === 'name' && 'Please provide your name to register for this event.'}
             {step === 'email' && 'Please provide your email address to continue.'}
             {step === 'verification' && `We've sent a verification code to ${email}. Please enter the 6-digit code below.`}
             {step === 'rsvp' && 'Do you want to join the fun?'}
+            {step === 'cancel' && 'Get back in on the action?'}
           </AlertDialogDescription>
         </AlertDialogHeader>
 
         {step === 'name' && <NameForm onNext={handleNameSubmit} onCancel={() => setOpen(false)} />}
         {step === 'email' && <EmailForm onNext={handleEmailSubmit} onBack={() => setStep('name')} />}
         {step === 'verification' && <OtpForm onNext={handleOtpSubmit} onBack={() => setStep('email')} email={email} />}
-        {step === 'rsvp' && (
+        {(step === 'rsvp') && (
           <div className="flex justify-end space-x-4">
             <Button variant="outline" onClick={() => setOpen(false)}>
               Back
@@ -203,6 +292,16 @@ const RsvpButton: React.FC<RsvpButtonProps> = ({ eventId, eventName }) => {
             <Button onClick={processRSVPSigned}>Confirm RSVP</Button>
           </div>
         )}
+        {
+          step === 'cancel' && (
+            <div className="flex justify-end space-x-4">
+              <Button variant="outline" onClick={() => setOpen(false)}>
+                Back
+              </Button>
+              <Button onClick={update_attendee}>Join back</Button>
+            </div>
+          )  
+        }
       </AlertDialogContent>
     </AlertDialog>
   );

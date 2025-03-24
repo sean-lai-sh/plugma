@@ -2,7 +2,7 @@ import supabase from "../../config/supabase";
 import { Request, Response } from "express";
 
 
-export const add_attendee_signed = async (req: Request, res: Response) => {
+export const update_attendee = async (req: Request, res: Response) => {
     try{
         // Fetch params
         const event_id = req.query.event_id as string;
@@ -12,17 +12,13 @@ export const add_attendee_signed = async (req: Request, res: Response) => {
             return;
         }
         console.log("Adding to event for event ID:", event_id, "with user ID:", user_id);
-        const { data, error } = await supabase.from('attendees').insert({
-            eventidref: event_id,
-            user_reference: user_id,
+        const { data, error } = await supabase.from('attendees').update({
             rsvp_status: 'going',
-            client_status: 'member', 
-            attended: false
-          });
+          }).eq('user_reference', user_id).eq('eventidref', event_id);
         console.log(error, data);
         if(error) {
             console.error(error);
-            //try once more to update in case of a duplicate key error
+            
             res.status(500).json({ error: "Failed to add attendee due to error" });
             return;
         }
@@ -33,3 +29,5 @@ export const add_attendee_signed = async (req: Request, res: Response) => {
         return;
     }
 }
+
+
