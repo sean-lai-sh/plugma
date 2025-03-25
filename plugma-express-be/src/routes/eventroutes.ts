@@ -7,6 +7,7 @@ import { add_attendee } from "../controllers/events/add_attendeee";
 import { add_attendee_signed } from "../controllers/events/add_attendee_signed";
 import { cancel_attendee } from "../controllers/events/cancel_attendee";
 import { update_attendee } from "../controllers/events/update_attendee";
+import { check_host } from "../controllers/events/check_host";
 
 const router: Router = Router();
 router.get('/manageEvent', manageEvent);
@@ -16,6 +17,7 @@ router.get("/getEvent/:slug", eventPageFetch);
 router.get("/checkattendee", checkAttendance);
 router.get('/cancel_attendee', cancel_attendee);
 router.get('/update_attendee', update_attendee);
+router.get('/check_host', check_host);
 router.post("/create", createEventController);
 router.post("/blast", blastEmail);
 router.post("/predict", predictRSVP);

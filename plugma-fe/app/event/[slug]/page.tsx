@@ -48,7 +48,7 @@ export default async function EventPage({ params }: { params: { slug: string } }
 
   return (
     <div className="bg-gray-50 min-h-screen pb-20">
-        <EventNavbar />
+        <EventNavbar slug={params.slug} />
       {/* Header with image */}
       <div className="w-full bg-gray-900 h-[40vh] relative overflow-hidden">
         {event.image ? (

@@ -1,12 +1,14 @@
-'use client'
-import React from 'react'
+
+import React, { Suspense } from 'react'
 import Link from 'next/link'
 import { ArrowUpRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Profile from '@/components/ui/profile'
 import {redirect} from 'next/navigation'
+import { useAuth } from '@clerk/nextjs';
+import EventNavCTA from './eventNavCTA';
 
-const EventNavbar = () => {
+const EventNavbar = ({slug} : {slug?:string}) => {
   return (
     <header className="border-b border-slate-200 bg-white">
         <div className="container mx-auto px-4 md:px-6 py-6">
@@ -19,9 +21,16 @@ const EventNavbar = () => {
             <div className="flex items-center space-x-6">
             </div>
             <div className='flex items-center space-x-5'>
-              <Link href="/create">
-              <Button size="sm" onClick={() => {redirect("/create")}}>Create New Event</Button>
-              </Link>
+              <Suspense fallback={<Link href={`/create`}>
+                  <Button
+                  size="sm"
+                  
+                  >
+                  Create New Event
+                  </Button>
+              </Link>}>
+                <EventNavCTA slug={slug}/>
+              </Suspense>            
               <Profile/>
             </div>
         </div>

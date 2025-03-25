@@ -1,4 +1,5 @@
-import { Step } from './types';
+import { GuestStats, Step } from './types';
+import { manageEventType } from './utils';
 export const loadingStepsArr: Step[] = [
   { 
     id: 'pull-data', 
@@ -126,4 +127,29 @@ export const getMockEvents = () => {
 
 export const getEmptyMockEvents = () => {
     return [];
+    }
+
+export const defaultManagerEvent: manageEventType = {
+    event_name: "",
+    event_description: "",
+    event_date: "",
+    end_date: "",
+    location_name: "",
+    location_address: "",
+    image: "",
+    capacity: null,
+    payment_amount: 0,
+    payment_currency: "",
+    virtual_meeting_url: "",
+    approval_required: false,
+    hosts_info: [],
+    attendees: [],
+};
+
+export const testGuestStats: GuestStats = 
+    {
+      going: 45,
+      maybe: 3,
+      notGoing: 15,
+      capacity: 80
     }

@@ -3,11 +3,18 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabaseClient';
-import { EventType } from '@/lib/utils';
+import { manageEventType } from '@/lib/utils';
 import { Card, CardContent } from '@/components/ui/card';
+import EventNavbar from '@/components/eventNavbar';
+import EventHeader from '@/components/event-manage/EventHeader';
+import { defaultManagerEvent } from '@/lib/consts';
+import GuestList from '@/components/event-manage/GuestList';
+import HostList from '@/components/event-manage/HostList';
+import EventOverview from '@/components/event-manage/EventOverview';
+import { Tabs, TabsContent, TabsTrigger, TabsList } from '@/components/ui/tabs';
 
 export default function EventPageClient({ params }: { params: { slug: string } }) {
-    const [event, setEvent] = useState<EventType | null>(null);
+    const [event, setEvent] = useState<manageEventType>(defaultManagerEvent);
     const [isLoading, setIsLoading] = useState(true);
     const [loadingSteps, setLoadingSteps] = useState<{ label: string; progress: number }[]>([]);
     const router = useRouter();
@@ -51,30 +58,51 @@ export default function EventPageClient({ params }: { params: { slug: string } }
         loadingSteps={loadingSteps} 
         message="Preparing your event preview..." 
       />} */}
-      
-    <div className="max-w-md mx-auto mt-10">
-      <Card>
-        <CardContent className="p-6 relative">
-          {/* Content with blur */}
-          <div className={`transition-all ${isLoading ? "blur-sm select-none" : ""}`}>
-            <h2 className="text-xl font-bold mb-2">Premium Event Details</h2>
-            <p className="text-muted-foreground">
-              This content is only visible to approved users or after unlocking.
-            </p>
-          </div>
+    
+      <div className="min-h-screen bg-gray-50">
+        <EventNavbar />
+        <EventHeader 
+          title={event.event_name} 
+          category={"Personal"}
+          slug={params.slug}
+        />
+        
+        <main className="container mx-auto pb-16 px-4 md:px-6">
+        <Tabs defaultValue="overview" className="mt-6">
+          <TabsList className="w-full grid grid-cols-4 mb-6">
+            <TabsTrigger value="overview">Overview</TabsTrigger>
+            <TabsTrigger value="guests">Guests</TabsTrigger>
+            <TabsTrigger value="hosts">Hosts</TabsTrigger>
+            <TabsTrigger value="visibility">Visibility</TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="overview" className='space-y-4'>
+            <EventOverview eventEnded={new Date(event.end_date) <= new Date()} 
+              eventData={event}
+            />
+            <GuestList eventData={event}              
+            />
+            <HostList hosts={event.hosts_info}/>
+          </TabsContent>
+          
+          <TabsContent value="guests">
+            <GuestList eventData={event}              
+            />
+            
+          </TabsContent>
+          
+          <TabsContent value="hosts">
+            <HostList hosts={event.hosts_info}/>
+          </TabsContent>
+          
+          {/* <TabsContent value="visibility">
+            <VisibilitySection />
+          </TabsContent> */}
+        </Tabs>
+      </main>
 
-          {/* Overlay (optional)
-          {isLoading && (
-            <div className="absolute inset-0 flex items-center justify-center bg-background/60 backdrop-blur-sm z-10 rounded-md">
-              <Button onClick={() => setIsLoading(false)}>Unlock</Button>
-            </div>
-          )} */}
-        </CardContent>
-      </Card>
+
     </div>
-
-
-
-    </div>
+  </div>
   );
 }
