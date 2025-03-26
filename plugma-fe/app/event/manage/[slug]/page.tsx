@@ -12,6 +12,7 @@ import GuestList from '@/components/event-manage/GuestList';
 import HostList from '@/components/event-manage/HostList';
 import EventOverview from '@/components/event-manage/EventOverview';
 import { Tabs, TabsContent, TabsTrigger, TabsList } from '@/components/ui/tabs';
+import VisibilitySection from '@/components/event-manage/VisibilitySection';
 
 export default function EventPageClient({ params }: { params: { slug: string } }) {
     const [event, setEvent] = useState<manageEventType>(defaultManagerEvent);
@@ -95,9 +96,12 @@ export default function EventPageClient({ params }: { params: { slug: string } }
             <HostList hosts={event.hosts_info}/>
           </TabsContent>
           
-          {/* <TabsContent value="visibility">
-            <VisibilitySection />
-          </TabsContent> */}
+          <TabsContent value="visibility">
+            <VisibilitySection 
+            eventData={event}
+            slug={params.slug}
+            />
+          </TabsContent>
         </Tabs>
       </main>
 

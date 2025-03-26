@@ -59,6 +59,7 @@ export type manageEventType = {
   end_date: string;
   image: string;
   capacity: number | null;
+  community_id: string;
   payment_amount: number;
   payment_currency: string;
   location_address: string;

@@ -39,12 +39,12 @@ const GuestList = ({eventData} : {eventData:manageEventType}) => {
       <CardContent className="px-4 py-2">
         <div className="rounded-lg overflow-hidden">
           <div className="divide-y divide-border">
-            {eventData.attendees.map((attendee) => (
+            {eventData.attendees.length > 0 && eventData.attendees.map((attendee) => (
               <div key={attendee.attendee_name + attendee.profile_image} className="flex items-center justify-between py-3 hover:bg-muted/20 transition-colors">
                 <div className="flex items-center gap-3">
                   <Avatar className="h-8 w-8">
-                    <AvatarImage src={attendee.profile_image} alt={attendee.attendee_name} />
-                    <AvatarFallback className="text-xs">{attendee.attendee_name.charAt(0)}</AvatarFallback>
+                    <AvatarImage src={attendee.profile_image || process.env.NEXT_PUBLIC_DEFAULT_PFP} alt={attendee.attendee_name} />
+                    <AvatarFallback className="text-xs">{"attendee"}</AvatarFallback>
                   </Avatar>
                   <div>
                     <p className="font-normal text-sm">{attendee.attendee_name}</p>

@@ -264,7 +264,7 @@ const EventDashboard = () => {
                           <TableHead>Event Name</TableHead>
                           <TableHead>Date</TableHead>
                           <TableHead>Attendees</TableHead>
-                          <TableHead>Revenue</TableHead>
+                          <TableHead>RSVPs</TableHead>
                           <TableHead></TableHead>
                         </TableRow>
                       </TableHeader>

@@ -64,7 +64,7 @@ export default async function EventPage({ params }: { params: { slug: string } }
       </div>
 
       {/* Content container */}
-      <div className="container mx-auto px-4 max-w-4xl -mt-40 relative z-10">
+      <div className="container mx-auto px-4 max-w-5xl -mt-40 relative z-10">
         <div className="bg-white rounded-lg shadow-xl overflow-hidden">
           {/* Event preview card */}
           <div className="p-6 md:p-8">

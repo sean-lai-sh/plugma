@@ -61,14 +61,14 @@ export const getMockEvents = () => {
           imageUrl: "https://images.lumacdn.com/cdn-cgi/image/format=auto,fit=cover,dpr=1,background=white,quality=75,width=400,height=400/event-covers/ky/6f6eb772-12cf-4aaa-a094-88c2f958a5e7.png"
         },
         {
-          id: "event2",
-          title: "Product Design Workshop",
+          id: "985a5234-03ef-4c8c-acd2-99ae004aa2bf",
+          title: "NextJS event",
           date: today,
           time: "5:00 PM",
-          location: "Design Studio",
-          locationDetail: "Design Studio, 123 Creative St",
+          location: "21:00:00+00",
+          locationDetail: "6 MetroTech Center, Brooklyn, NY 11201",
           attendees: 25,
-          imageUrl: "https://images.unsplash.com/photo-1540317580384-e5d43867caa6?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"
+          imageUrl: "https://static1.makeuseofimages.com/wordpress/wp-content/uploads/2016/10/camera-photo-lens-stock-images.jpg"
         },
         {
           id: "event3",
@@ -138,6 +138,7 @@ export const defaultManagerEvent: manageEventType = {
     location_address: "",
     image: "",
     capacity: null,
+    community_id: "",
     payment_amount: 0,
     payment_currency: "",
     virtual_meeting_url: "",

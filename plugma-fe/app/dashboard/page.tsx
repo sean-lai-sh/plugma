@@ -115,7 +115,6 @@ export default function Dashboard() {
 
         {hasEvents ? (
           <div className="max-w-4xl mx-auto">
-            <EventTimeline days={activeTab === "upcoming" ? mockEventDays : pastEventDays} />
             <div className="flex justify-center mt-8">
               <Link href="/create">
                 <Button className="bg-primary text-white" size="lg">
@@ -124,6 +123,8 @@ export default function Dashboard() {
                 </Button>
               </Link>
             </div>
+            <EventTimeline days={activeTab === "upcoming" ? mockEventDays : pastEventDays} />
+            
           </div>
         ) : (
           <div className="mt-16 flex flex-col items-center justify-center">
