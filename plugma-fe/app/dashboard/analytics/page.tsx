@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useState } from "react";
+import { use, useCallback, useEffect, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -19,16 +19,28 @@ import { Step } from '@/lib/types';
 import { supabase } from "@/lib/supabaseClient";
 import { useRouter } from "next/navigation";
 import { set } from "date-fns";
+type Event = {
+  community_name: string;
+  community_id: string;
+  event_id: string;
+  event_name: string;
+  event_date: string;
+  total_attendees: number;
+  total_rsvps: number;
+};
 
+type CommunityGroupedEvents = {
+  [communityName: string]: Event[];
+};
 const EventDashboard = () => {
     const [selectedChart, setSelectedChart] = useState<'attendees' | 'engagement' | 'revenue'>('attendees');
     const [isLoading, setIsLoading] = useState(true);
     const [loadingSteps, setLoadingSteps] = useState<Step[]>(loadingStepsArr);
-    const [showWarning, setShowWarning] = useState(false);
-    const [recentEvents, setRecentEvents] = useState<any[]>([]);
+    const [recentEvents, setRecentEvents] = useState<Event[]>([]);
+    const [groupedEvent, setGroupedEvents] = useState<CommunityGroupedEvents>({});
     const [userID, setUserID] = useState<string | null>(null);
-    const [communityID, setCommunityID] = useState<string | null>(null);
-    const [currCommName, setCurrCommName] = useState<string>('Personal');
+    const [communityList, setCommunityList] = useState<any[]>([]);
+    const [currCommName, setCurrCommName] = useState<string>('');
     const router = useRouter();
     // Mock data for event stats
     const eventStats = [
@@ -75,44 +87,102 @@ const EventDashboard = () => {
       { name: "VIP", value: 25, color: "#F97316" },
     ];
 
-    useEffect(() => {
-        const fetchUserID = async () => {
-            // Fetch user and community data here
-            const { data: { user } } = await supabase.auth.getUser();
-            if (!user) {
-              console.log("User not found, redirecting...");
-              setTimeout(() => router.push("/"), 5000);
-              return;
-            }
-            setUserID(user.id);
-            const user_id = user.id;
-            const comm_name = currCommName; // Replace with actual community name if available
-            const params = new URLSearchParams({ user_id, comm_name })
-            const response = await fetch(`${process.env.NEXT_PUBLIC_API_ROUTE}/ds/getcommid/?${params.toString()}`);
-            const data = await response.json();
-            console.log(data);
-            // extract community ID from the response and set it in state
-            setCommunityID(data.comm_id);
-            console.log("Community ID:", data.comm_id);
-
+    function groupEventsByCommunity(events: Event[]): CommunityGroupedEvents {
+      return events.reduce((acc, event) => {
+        if (!acc[event.community_name]) {
+          acc[event.community_name] = [];
         }
-        fetchUserID();
-    },[]);
+        acc[event.community_name].push(event);
+        
+        return acc;
+      }, {} as CommunityGroupedEvents);
+    }
+
+    const handleCommunityChange = useCallback((value: string) => {
+      setCurrCommName(value);
+      
+      // Directly update recent events based on the selected community
+      if (groupedEvent[value]) {
+        setRecentEvents(groupedEvent[value]);
+      }
+    }, [recentEvents]);
+
     useEffect(() => {
-      if (!userID || !communityID) return;
+      const fetchUserAndCommunityData = async () => {
+        try {
+          const { data: { user } } = await supabase.auth.getUser();
+          if (!user) {
+            console.log("User not found, redirecting...");
+            router.push("/");
+            return;
+          }
     
-      const getcommevents = async () => {
-        const params = new URLSearchParams({ user_id: userID, comm_id: communityID });
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_ROUTE}/ds/recentcommunity/?${params.toString()}`);
-        const data = await response.json();
-        console.log(data);
-        setRecentEvents(data);
+          setUserID(user.id);
+          
+          const params = new URLSearchParams({ user_id: user.id });
+          const res = await fetch(
+            `${process.env.NEXT_PUBLIC_API_ROUTE}/ds/getallcomms/?${params.toString()}`
+          );
+          
+          if (res.ok) {
+            const data = await res.json();
+            setCommunityList(data);
+            
+            if (data && data.length > 0) {
+              const initialCommunityName = data[0].name;
+              setCurrCommName(initialCommunityName);
+              
+              // Fetch events for the initial community
+              const eventsParams = new URLSearchParams({ user_id: user.id });
+              const eventsResponse = await fetch(`${process.env.NEXT_PUBLIC_API_ROUTE}/ds/getallevents/?${eventsParams.toString()}`);
+              
+              if (eventsResponse.ok) {
+                const eventsData = await eventsResponse.json();
+                const groupedEvents = groupEventsByCommunity(eventsData);
+                setGroupedEvents(groupedEvents);
+                
+                // Set recent events for the initial community
+                if (groupedEvents[initialCommunityName]) {
+                  setRecentEvents(groupedEvents[initialCommunityName]);
+                }
+              }
+            }
+            
+            setIsLoading(false);
+          }
+        } catch (error) {
+          console.error("Error fetching user and community data:", error);
+          setIsLoading(false);
+        }
       };
     
-      getcommevents();
-    }, [userID, communityID]);
-
+      fetchUserAndCommunityData();
+    }, []); // Empty dependency array ensures this runs only once on mount
+    
+    useEffect(() => {
+      const fetchEventsByCommunity = async () => {
+        if (!userID || !currCommName) return;
+    
+        try {
+          const groupedEventsForCommunity = groupedEvent[currCommName];
+          
+          if (groupedEventsForCommunity) {
+            setRecentEvents(groupedEventsForCommunity);
+          }
+        } catch (error) {
+          console.error("Error fetching events by community:", error);
+        }
+      };
+    
+      fetchEventsByCommunity();
+    }, [currCommName, groupedEvent, userID]);
   
+    function truncateText(text: string, maxLength: number) {
+      if (text.length <= maxLength) {
+        return text;
+      }
+      return text.slice(0, maxLength - 3) + '...';
+    }
     return (
       <>
       <div className={`min-h-screen bg-[#F1F0FB] pb-12`}>
@@ -130,12 +200,17 @@ const EventDashboard = () => {
         <main className="container mx-auto px-4 py-8">
           <div className="mb-8 flex items-center justify-between">
             <h1 className="text-3xl font-bold text-slate-900">Event Analytics</h1>
-            <Tabs defaultValue="overview" className="w-auto">
-              <TabsList className="grid w-[300px] grid-cols-1"> 
-                {/* Change to grid-cols-3 when ready */}
-                <TabsTrigger value="overview">Overview</TabsTrigger>
-                {/* <TabsTrigger value="insights">Insights</TabsTrigger>
-                <TabsTrigger value="reports">Reports</TabsTrigger> */}
+            <Tabs 
+              value={currCommName}
+              onValueChange={handleCommunityChange} 
+              className="w-auto"
+            >
+              <TabsList className={`grid w-[300px] grid-cols-${communityList.length}`}>
+                {communityList.map((comm) => (
+                  <TabsTrigger value={comm.name} key={comm.community_id}>
+                    {truncateText(comm.name, 10)}
+                  </TabsTrigger>
+                ))}
               </TabsList>
             </Tabs>
           </div>
@@ -269,22 +344,30 @@ const EventDashboard = () => {
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {recentEvents.map((event) => (
-                          <TableRow key={event.event_id}>
-                            <TableCell className="font-medium">{event.event_name}</TableCell>
-                            <TableCell>{
-                              // Format the date to a more readable format
-                              new Date(event.event_date).toLocaleDateString('en-US', { year: 'numeric', month: 'numeric', day: 'numeric' })
-                              }</TableCell>
-                            <TableCell>{event.total_attendees}</TableCell>
-                            <TableCell>{event.total_rsvps}</TableCell>
-                            <TableCell>
-                              <Button variant="ghost" size="sm" onClick={() => router.push(`/event/manage/${event.event_id}`)}>
-                                <ChevronRight className="h-4 w-4" />
-                              </Button>
-                            </TableCell>
-                          </TableRow>
-                        ))}
+                      {(recentEvents).map((event) => (
+                              <TableRow key={event.event_id}>
+                                <TableCell className="font-medium">{event.event_name}</TableCell>
+                                <TableCell>
+                                  {new Date(event.event_date).toLocaleDateString('en-US', { 
+                                    year: 'numeric', 
+                                    month: 'numeric', 
+                                    day: 'numeric' 
+                                  })}
+                                </TableCell>
+                                <TableCell>{event.total_attendees}</TableCell>
+                                <TableCell>{event.total_rsvps}</TableCell>
+                                <TableCell>
+                                  <Button 
+                                    variant="ghost" 
+                                    size="sm" 
+                                    onClick={() => router.push(`/event/manage/${event.event_id}`)}
+                                  >
+                                    <ChevronRight className="h-4 w-4" />
+                                  </Button>
+                                </TableCell>
+                              </TableRow>
+                            ))
+                          }
                       </TableBody>
                     </Table>
                   </CardContent>
