@@ -10,5 +10,8 @@ router.get("/recentcommunity", fetchCommunityEvents)
 router.get("/getcommid", getCommID);
 router.get("/getallcomms", allcomms);
 router.get("/getallevents", fetchUserCommunityEvents);
+router.get('/test_connection', (req, res) => {
+    res.send('Hello World!')
+    })
 
 export default router;
