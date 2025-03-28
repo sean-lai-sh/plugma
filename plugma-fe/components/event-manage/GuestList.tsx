@@ -39,7 +39,7 @@ const GuestList = ({eventData, onEdit} : {eventData:manageEventType, onEdit: (id
       <CardContent className="px-4 py-2">
         <div className="rounded-lg overflow-hidden">
           <div className="divide-y divide-border">
-            {eventData.attendees.length > 0 && eventData.attendees.map((attendee) => (
+            {eventData.attendees && eventData.attendees.length > 0 && eventData.attendees.map((attendee) => (
               <div key={attendee.attendee_name + attendee.profile_image} className="guest-row flex items-center justify-between py-3 hover:bg-muted/20 transition-colors">
                 <div className="flex items-center gap-3">
                   <Avatar className="h-8 w-8">

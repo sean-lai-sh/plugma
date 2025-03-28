@@ -119,7 +119,7 @@ export const RecommendationsBox = ({events, currCommName}:{events:Event[], currC
       
       const cached = localStorage.getItem(cacheKey);
       const prevName = localStorage.getItem('currCommName');
-      if (cached && prevName === currCommName) {
+      if (cached && prevName &&  prevName === currCommName) {
         console.log("Loaded recommendations from cache");
         setRecommendations(parseRecommendations(JSON.parse(cached)));
         return;

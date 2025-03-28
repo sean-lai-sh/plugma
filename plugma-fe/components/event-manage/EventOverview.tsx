@@ -21,7 +21,7 @@ interface EventOverviewProps {
 
 const EventOverview: React.FC<EventOverviewProps> = ({ eventEnded = true, eventData }) => {
   if(eventData === null) return EventOverviewSkeleton();
-  const checkedIn = eventData.attendees.filter((attendee) => attendee.attended === true).length
+  const checkedIn = eventData.attendees !== null ? eventData.attendees.filter((attendee) => attendee.attended === true).length : 0;
   return (
     <div className="space-y-6 animate-slide-in">
       {eventEnded && (
@@ -110,7 +110,7 @@ const EventOverview: React.FC<EventOverviewProps> = ({ eventEnded = true, eventD
         </Card>
       </div>
       
-      <Card className="glass-card">
+      {/* <Card className="glass-card">
         <CardHeader className="flex flex-row items-center justify-between p-4">
           <CardTitle className="text-md font-medium">Invites</CardTitle>
           <Button variant="outline" size="sm" className="flex items-center gap-2">
@@ -126,10 +126,10 @@ const EventOverview: React.FC<EventOverviewProps> = ({ eventEnded = true, eventD
               <Users className="h-5 w-5 text-muted-foreground" />
             </div>
             {/* <h4 className="text-sm font-medium mt-3">{eventData.invitesTitle}</h4>
-            <p className="text-xs text-muted-foreground mt-1">{eventData.invitesDesc}</p> */}
+            <p className="text-xs text-muted-foreground mt-1">{eventData.invitesDesc}</p> 
           </div>
         </CardContent>
-      </Card>
+      </Card> */}
     </div>
     );
 }
