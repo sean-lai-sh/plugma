@@ -77,6 +77,7 @@ export default function Dashboard() {
               console.log("Past Event",pastEventDays);
               setCurrEvents(splitEventsByDate(data).currentAndFutureEvents);
               console.log("Current Event",currEvents);
+              setHasEvents(currEvents.length > 0);
           }
         } catch (error) {
           console.error('Error fetching user or events:', error);
@@ -115,7 +116,15 @@ export default function Dashboard() {
       return { pastEvents, currentAndFutureEvents };
     }
     
-    
+  const changeTab = (value: string) => {
+    if(value === "upcoming"){
+      setActiveTab("upcoming");
+      setHasEvents(currEvents.length > 0);
+    }else{
+      setActiveTab("past");
+      setHasEvents(pastEventDays.length > 0);
+    }
+  }
     
     
 
@@ -131,7 +140,7 @@ export default function Dashboard() {
           <h1 className="text-3xl font-bold text-slate-900">Events</h1>
           <Tabs 
             value={activeTab} 
-            onValueChange={setActiveTab}
+            onValueChange={changeTab}
             className="w-auto"
           >
             <TabsList className="grid w-[200px] grid-cols-2">

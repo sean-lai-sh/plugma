@@ -4,7 +4,7 @@ import fs from 'fs';
 import path from 'path';
 
 // Setup OpenAI config
-const agent = new OpenAI({apiKey: process.env.NEXT_PUBLIC_OPENAI_API_KEY});
+const agent = new OpenAI({apiKey: process.env.OPENAI_API_KEY});
 
 // ✅ Named export for POST (App Router requirement)
 export async function POST(req: Request) {

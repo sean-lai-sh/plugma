@@ -17,7 +17,7 @@ import React from "react";
    icon: Icon,
    color,
  }) => {
-   const isPositive = change.startsWith('+');
+   const isPositive = !change.startsWith('-');
    
    return (
      <Card>
