@@ -9,7 +9,7 @@ import GuestProgress from './GuestProgress';
 import { GuestStats } from '@/lib/types';
 import { testGuestStats } from '@/lib/consts';
 
-const GuestList = ({eventData} : {eventData:manageEventType}) => {
+const GuestList = ({eventData, onEdit} : {eventData:manageEventType, onEdit: (id:string) => void}) => {
   const attendeeStats: GuestStats = testGuestStats;
       // {
       //   going: eventData.attendees.filter((attendee) => attendee.rsvp_status === 'going').length,
@@ -40,7 +40,7 @@ const GuestList = ({eventData} : {eventData:manageEventType}) => {
         <div className="rounded-lg overflow-hidden">
           <div className="divide-y divide-border">
             {eventData.attendees.length > 0 && eventData.attendees.map((attendee) => (
-              <div key={attendee.attendee_name + attendee.profile_image} className="flex items-center justify-between py-3 hover:bg-muted/20 transition-colors">
+              <div key={attendee.attendee_name + attendee.profile_image} className="guest-row flex items-center justify-between py-3 hover:bg-muted/20 transition-colors">
                 <div className="flex items-center gap-3">
                   <Avatar className="h-8 w-8">
                     <AvatarImage src={attendee.profile_image || process.env.NEXT_PUBLIC_DEFAULT_PFP} alt={attendee.attendee_name} />
@@ -53,7 +53,15 @@ const GuestList = ({eventData} : {eventData:manageEventType}) => {
                 </div>
                 <div className="flex items-center gap-6">
                   <span className="badge-going font-normal text-sm text-gray-700">{attendee.rsvp_status}</span>
-                  <span className="text-sm text-muted-foreground">{eventData.event_date}</span>
+                  <div className=''>
+                  {attendee.attended ? <Button className="text-sm text-white" onClick={() =>{
+                    onEdit(attendee.id)
+                    return "Check In"
+                  }} variant={"destructive"}>Cancel Check In</Button> : <Button className="text-sm text-white" onClick={() =>{
+                    onEdit(attendee.id)
+                    return "Check In"
+                  }}>Check In</Button>}
+                  </div>
                 </div>
               </div>
             ))}

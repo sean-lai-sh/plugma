@@ -108,6 +108,11 @@ export default {
     			sm: 'calc(var(--radius) - 4px)'
     		},
     		keyframes: {
+				checkinFlash: {
+					'0%': { transform: 'scale(1)', backgroundColor: 'transparent' },
+					'50%': { transform: 'scale(1.03)', backgroundColor: 'rgba(34,197,94,0.15)' },
+					'100%': { transform: 'scale(1)', backgroundColor: 'transparent' },
+				  },
     			'accordion-down': {
     				from: {
     					height: '0'
@@ -198,6 +203,7 @@ export default {
     			'scale-in': 'scale-in 0.5s ease-out',
     			'slide-up': 'slide-up 0.5s ease-out',
     			'slide-down': 'slide-down 0.5s ease-out',
+				'checkin-flash': 'checkinFlash 0.4s ease-in-out',
     			float: 'float 6s ease-in-out infinite'
     		}
     	}

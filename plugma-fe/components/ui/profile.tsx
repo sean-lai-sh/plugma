@@ -14,161 +14,134 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { redirect, useRouter } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { storePrevPath } from '../signup';
+import { useAuth } from '@/lib/providers/AuthProvider';
 
-const Profile = ({hide}:{hide?: boolean}) => {
-    const [userData, setUserData] = useState<any>(null);
-    const [profilePic, setProfilePic] = useState<string>(process.env.NEXT_PUBLIC_DEFAULT_PFP || "");
-    const [alertOpen, setAlertOpen] = useState(false);
-    const router = useRouter();
-    useEffect(() => {
-        const fetchUser = async () => {
-            const { data: { user } } = await supabase.auth.getUser();
-            // console.log(user?.user_metadata);
-            // console.log(process.env.DEFAULT_PFP);
-            setUserData(user);
-            if(user?.user_metadata) {
-                setProfilePic(user.user_metadata.avatar_url || process.env.NEXT_PUBLIC_DEFAULT_PFP || "");
-            }
-            // console.log(user?.user_metadata.avatar_url);
-        };
-        fetchUser();
-        // console.log(profilePic);
-    }, [profilePic]);
+const Profile = ({ hide }: { hide?: boolean }) => {
+  const { user, loading } = useAuth();
+  const [alertOpen, setAlertOpen] = useState(false);
+  const router = useRouter();
 
-    const SignOut = async () => {
-        console.log("Signing out...");
-        const { error } = await supabase.auth.signOut();
-        if (error) console.log('Error logging out:', error.message);
-        else{
-            setUserData(null);
-            console.log("Signed out successfully!");
-            // if in dashboard directory redirect to home page
-            if (window.location.pathname.includes("dashboard")) {
-                router.push("/");
-            }else if(window.location.pathname.includes("profile")) {
-                router.push("/sign-in");
-            }else if (window.location.pathname.includes("manage")) {
-                router.push("/sign-in");
-            }
-        }
-        return null;
-        }   
+  const userMetadata = user?.user_metadata || {};
+  const profilePic = userMetadata.avatar_url || process.env.NEXT_PUBLIC_DEFAULT_PFP || "";
+  const fullName = userMetadata.full_name || "Guest";
+  const email = userMetadata.email || "No email";
 
-    return (
-        <>
-        <Popover>
-            <PopoverTrigger asChild>
-            <button className="rounded-full flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2">
-                <Avatar className="h-8 w-8 cursor-pointer">
-                <AvatarImage src={profilePic || ""} alt={profilePic} />
-                <AvatarFallback className="bg-yellow-300 text-yellow-700">
-                    <span className="text-lg">😊</span>
-                </AvatarFallback>
-                </Avatar>
-            </button>
-            </PopoverTrigger>
-            <PopoverContent className="w-56 p-0" align="end">
-            {userData ? <>
-            <div className="flex items-center gap-2 p-4 border-b border-gray-100">
+  const SignOut = async () => {
+    const { error } = await supabase.auth.signOut();
+    if (error) console.error('Error logging out:', error.message);
+    else {
+      if (window.location.pathname.includes("dashboard") || window.location.pathname.includes("manage")) {
+        router.push("/");
+      } else if (window.location.pathname.includes("profile")) {
+        router.push("/sign-in");
+      }
+    }
+  };
+
+  return (
+    <>
+      <Popover>
+        <PopoverTrigger asChild>
+          <button className="rounded-full flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2">
+            <Avatar className="h-8 w-8 cursor-pointer">
+              <AvatarImage src={profilePic} alt="profile" />
+              <AvatarFallback className="bg-yellow-300 text-yellow-700">
+                <span className="text-lg">😊</span>
+              </AvatarFallback>
+            </Avatar>
+          </button>
+        </PopoverTrigger>
+
+        <PopoverContent className="w-56 p-0" align="end">
+          {user ? (
+            <>
+              <div className="flex items-center gap-2 p-4 border-b border-gray-100">
                 <Avatar className="h-10 w-10">
-                <AvatarImage src={profilePic || ""} alt={profilePic} />
-                <AvatarFallback className="bg-yellow-300 text-yellow-700">
+                  <AvatarImage src={profilePic} alt="avatar" />
+                  <AvatarFallback className="bg-yellow-300 text-yellow-700">
                     <span className="text-lg">😊</span>
-                </AvatarFallback>
+                  </AvatarFallback>
                 </Avatar>
                 <div className="flex flex-col">
-                {userData ? (
-                    <>
-                    <span className="text-xs text-muted-foreground">{userData.user_metadata.full_name}</span>
-                    <span className="text-xs text-muted-foreground">{userData.user_metadata.email}</span>
-                    </>
-                ) : "Error"}
+                  <span className="text-xs text-muted-foreground">{fullName}</span>
+                  <span className="text-xs text-muted-foreground">{email}</span>
                 </div>
-            </div>
-            <nav className="flex flex-col py-2">
-                <a 
-                href="/dashboard" 
-                className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+              </div>
+
+              <nav className="flex flex-col py-2">
+                <a
+                  href="/dashboard"
+                  className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                 >
-                <User className="h-4 w-4" />
-                View Dashboard
+                  <User className="h-4 w-4" />
+                  View Dashboard
                 </a>
-                {/* <a 
-                href="/settings" 
-                className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                <button
+                  className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 text-left"
+                  onClick={() => setAlertOpen(true)}
                 >
-                <Settings className="h-4 w-4" />
-                Settings
-                </a> */}
-                <button 
-                className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 text-left"
-                onClick={() => setAlertOpen(true)}
-                >
-                <LogOut className="h-4 w-4" />
-                Sign Out
+                  <LogOut className="h-4 w-4" />
+                  Sign Out
                 </button>
-            </nav>
-            </> : <>
-            <div className="flex items-center gap-2 p-4 border-b border-gray-100">
+              </nav>
+            </>
+          ) : (
+            <>
+              <div className="flex items-center gap-2 p-4 border-b border-gray-100">
                 <Avatar className="h-10 w-10">
-                <AvatarImage src={profilePic || ""} alt={profilePic} />
-                <AvatarFallback className="bg-yellow-300 text-yellow-700">
+                  <AvatarImage src={profilePic} alt="avatar" />
+                  <AvatarFallback className="bg-yellow-300 text-yellow-700">
                     <span className="text-lg">😊</span>
-                </AvatarFallback>
+                  </AvatarFallback>
                 </Avatar>
                 <div className="flex flex-col">
-                {userData ? (
-                    <>
-                    <span className="text-xs text-muted-foreground">{userData.user_metadata.full_name}</span>
-                    <span className="text-xs text-muted-foreground">{userData.user_metadata.email}</span>
-                    </>
-                ) : "Sign back in?"}
+                  <span className="text-xs text-muted-foreground">Sign back in?</span>
                 </div>
-            </div>
-            <nav className="flex flex-col py-2">
-                
-                <button 
-                className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 text-left"
-                onClick={() => {
+              </div>
+              <nav className="flex flex-col py-2">
+                <button
+                  className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 text-left"
+                  onClick={() => {
                     storePrevPath();
-                    router.push("/sign-in")}}
+                    router.push("/sign-in");
+                  }}
                 >
-                    <LogOut className="h-4 w-4" />
-                    Sign In
+                  <LogOut className="h-4 w-4" />
+                  Sign In
                 </button>
-            </nav>
-            </>}
-            </PopoverContent>
-        </Popover>
+              </nav>
+            </>
+          )}
+        </PopoverContent>
+      </Popover>
 
-        {/* Alert dialog triggered when "Sign Out" is clicked */}
-        <AlertDialog open={alertOpen} onOpenChange={setAlertOpen}>
-            <AlertDialogContent>
-            <AlertDialogHeader>
-                <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-                <AlertDialogDescription>
-                Clicking "Continue" will sign you out.
-                </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-                <AlertDialogCancel onClick={() => setAlertOpen(false)}>
-                Cancel
-                </AlertDialogCancel>
-                <AlertDialogAction
-                onClick={() => {
-                    setAlertOpen(false);
-                    SignOut();
-                }}
-                >
-                Continue
-                </AlertDialogAction>
-            </AlertDialogFooter>
-            </AlertDialogContent>
-        </AlertDialog>
-        </>
-    );
+      <AlertDialog open={alertOpen} onOpenChange={setAlertOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Clicking "Continue" will sign you out.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setAlertOpen(false)}>
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                setAlertOpen(false);
+                SignOut();
+              }}
+            >
+              Continue
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
+  );
 };
 
 export default Profile;

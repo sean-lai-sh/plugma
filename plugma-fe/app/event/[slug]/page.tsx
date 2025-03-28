@@ -1,4 +1,4 @@
-import { EventType, HostInfo } from "@/lib/utils";
+import { EventType, generateScrambledKey, HostInfo } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Calendar, Clock, MapPin, Users } from "lucide-react";
@@ -7,6 +7,9 @@ import { Separator } from "@/components/ui/separator";
 import LocationMap from "@/components/locationMap";
 import EventNavbar from "@/components/eventNavbar";
 import RsvpButton from "@/components/general-event/rsvpbutton";
+import HostList from "@/components/event-manage/HostList";
+import PubHost from "@/components/pubHost";
+import CheckInButton from "@/components/general-event/checkInButton";
 
 
 export default async function EventPage({ params }: { params: { slug: string } }) {
@@ -15,13 +18,15 @@ export default async function EventPage({ params }: { params: { slug: string } }
   });
   console.log("Response", res.status);
   console.log("res", res);
+  
   if (res == null || !res.ok) {
     return null;
   }
 
   const data = await res.json();
   const event: EventType = data?.[0];
-
+  console.log(event.hosts_info);
+  console.log("Event", event);
   if (!event) {
     return (
       <div className="container mx-auto px-4 py-8 max-w-3xl">
@@ -93,24 +98,20 @@ export default async function EventPage({ params }: { params: { slug: string } }
                 </div>
             </div>
             {event && (
+              <>
                 <RsvpButton
                     eventId={params.slug}
                     eventName={event.event_name}
                 />
+                <CheckInButton
+                    eventId={params.slug}
+                    eventName={event.event_name}
+                /></>
             )}
             <Separator className="my-3"/>
-            <div className="flex flex-col md:flex-row md:justify-between gap-6 mb-4 pt-2">
-                {/* Host section */}
-                <div className="flex items-center">
-                    <div>
-                    <h2 className="text-sm text-gray-500 mb-2 font-medium">Hosted by:</h2>
-                    <div className="flex items-center gap-3">
-                        {hostsPfpGeneration(event.hosts_info)}
-                    </div>
-                    </div>
-                </div>
-
-            </div>
+            <PubHost 
+            
+                hosts={event.hosts_info}/>
             
             {/* Location section */}
             
@@ -158,10 +159,11 @@ export default async function EventPage({ params }: { params: { slug: string } }
 
 
 const hostsPfpGeneration = (host_info: HostInfo[]) => {
+  console.log("Host Info", host_info);
   return (
     <div className="flex items-center space-x-4">
       {host_info.map((host) => (
-        <div key={host.profile_image} className="flex items-center">
+        <div key={generateScrambledKey()} className="flex items-center">
           <img
             src={host.profile_image}
             alt={host.host_name}

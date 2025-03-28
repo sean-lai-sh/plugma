@@ -41,13 +41,23 @@ const RsvpButton: React.FC<RsvpButtonProps> = ({ eventId, eventName }) => {
     if (!isOpen) resetForm();
   };
 
-  const sendVerificationCode = (email: string) => {
+  const sendVerificationCode = async (email: string) => {
     toast({
       title: 'Verification code sent to your email!',
       description: 'One more step to join the fun!',
     });
     setStep('verification');
     setEmail(email);
+    const { data, error } = await supabase.auth.signInWithOtp({
+      email,
+      options: {
+        shouldCreateUser: true,
+        emailRedirectTo: undefined,
+        data: {
+          full_name: `${name}`,
+        }
+      },
+    });
   };
 
   const handleNameSubmit = (data: NameFormData) => {
@@ -66,8 +76,10 @@ const RsvpButton: React.FC<RsvpButtonProps> = ({ eventId, eventName }) => {
       token: datap.otp,
       type: 'email',
     });
-
-    if (error) {
+    console.log('Data:', data);
+    console.log('Error:', error);
+    console.log("THIS IS A LONG THING TO CLEARLY TELL WHERE IT IS :)")
+    if (!data) {
       toast({
         title: 'Verification Failed!',
         description: 'Please check your email and try again.',
@@ -75,15 +87,18 @@ const RsvpButton: React.FC<RsvpButtonProps> = ({ eventId, eventName }) => {
       });
       return;
     }
-
-    // fetch the new session user
-    const { data: { user: verifiedUser } } = await supabase.auth.getUser();
-
-    if (!verifiedUser) return;
+    if (data?.session) {
+      // Update Supabase auth session manually
+      await supabase.auth.setSession({
+        access_token: data.session.access_token,
+        refresh_token: data.session.refresh_token,
+      });
+    }
+    if (!user) return;
 
     const params = new URLSearchParams({
       event_id: eventId,
-      user_id: verifiedUser.id,
+      user_id: user.id,
     });
 
     const response = await fetch(`${process.env.NEXT_PUBLIC_API_ROUTE}/events/add_attendee/?${params.toString()}`);
@@ -196,19 +211,19 @@ const RsvpButton: React.FC<RsvpButtonProps> = ({ eventId, eventName }) => {
 
   useEffect(() => {
     const checkRegister = async () => {
-      console.log('user', user);
-      console.log('loading', loading);
+      // console.log('user', user);
+      // console.log('loading', loading);
       if (!user || loading) return;
-      console.log('Checking registration status...');
+      // console.log('Checking registration status...');
       const param = new URLSearchParams({
         event_id: eventId,
         user_id: user.id,
       });
 
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_ROUTE}/events/checkattendee/?${param.toString()}`);
-      console.log('Response status:', response);
+      // console.log('Response status:', response);
       const data = await response.json();
-      console.log('Data:', data);
+      // console.log('Data:', data);
       if (response.ok && (data != "not registered" && data != 'no')) {
         setIsRegistered(true);
         setStep('registered');
@@ -223,7 +238,7 @@ const RsvpButton: React.FC<RsvpButtonProps> = ({ eventId, eventName }) => {
     };
 
     checkRegister();
-  }, [eventId, user, loading, step]);
+  }, [eventId, user?.id, loading]);
 
   // ✅ Render Registered State
   if (user && isRegistered) {

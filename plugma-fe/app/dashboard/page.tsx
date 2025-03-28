@@ -5,13 +5,16 @@ import { useRouter } from "next/navigation";
 import { supabase } from "../../lib/supabaseClient";
 import { Tabs, TabsList, TabsTrigger } from "../../components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { Calendar, Plus, Sparkles, Tickets } from "lucide-react";
+import { Calendar, Currency, Plus, Sparkles, Tickets } from "lucide-react";
 import EmptyState from "../../components/ui/EmptyState";
 import DashboardNavbar from "@/components/dashboardnavbar";
 import EventTimeline from "@/components/eventTimeline";
 import Link from "next/link";
 import { getMockEvents } from "@/lib/consts";
 import { mock } from "node:test";
+import { User } from "@supabase/supabase-js";
+import { EventData } from "@/lib/types";
+import { set } from "date-fns";
 
 
 type UserCTA = {
@@ -19,77 +22,102 @@ type UserCTA = {
   link: string;
 };
 
+
+
 export default function Dashboard() {
     const [scrolled, setScrolled] = useState(false);
-      const [userCTA, setUserCTA] = useState<UserCTA>({ button_text: 'Sign in', link: '/sign-in' });
-      useEffect(() => {
-        // const fetchUser = async () => {
-        //     const {
-        //       data: { user },
-        //     } = await supabase.auth.getUser();
-      
-        //     if (user) {
-        //       setUserCTA({ button_text: 'Host an event', link: '/dashboard' });
-        //     } 
-        //   };
-        const handleScroll = () => {
-          const isScrolled = window.scrollY > 20;
-          if (isScrolled !== scrolled) {
-            setScrolled(isScrolled);
-          }
-        };
-        window.addEventListener('scroll', handleScroll);
-        return () => {
-          window.removeEventListener('scroll', handleScroll);
-        };
-      }, [scrolled]);
-    const [user, setUser] = useState<any>(null);
+    const [user, setUser] = useState<User | null>(null);
     const [loading, setLoading] = useState(true);
-    const [data, setData] = useState<any[]>([]);
+    const [data, setData] = useState<EventData[]>([]);
+    const [currEvents , setCurrEvents] = useState<EventData[]>([]);
+    const [pastEventDays, setPastEventDays] = useState<EventData[]>([]);
     const router = useRouter();
-
     useEffect(() => {
-      // Fetch user session
-      const fetchUser = async () => {
-        const {
-          data: { user },
-        } = await supabase.auth.getUser();
-
-        if (!user) {
-          router.push("/sign-in"); // Redirect if not signed in
-        } else {
-          setUser(user);
-          fetchData(); // Fetch Supabase data
+      const handleScroll = () => {
+        const isScrolled = window.scrollY > 20;
+        if (isScrolled !== scrolled) {
+          setScrolled(isScrolled);
         }
-
-        setLoading(false);
       };
-
+      window.addEventListener('scroll', handleScroll);
+      return () => {
+        window.removeEventListener('scroll', handleScroll);
+      };
+    }, [scrolled]);
+      useEffect(() => {
+      const fetchUser = async () => {
+        setLoading(true);
+        try {
+          const { data: { user } } = await supabase.auth.getUser();
+          
+          if (!user) {
+            router.push("/sign-in"); // Redirect if not signed in
+            return;
+          }
+    
+          // Set user state only once
+          setUser(user);
+    
+          // Fetch events using the user's ID
+          const param = new URLSearchParams({ user_id: user.id });
+          const response = await fetch(`${process.env.NEXT_PUBLIC_API_ROUTE}/ds/getallevents/?${param.toString()}`);
+          
+          if (!response.ok) {
+            throw new Error('Failed to fetch events');
+          }
+          
+          const data = await response.json();
+          setData(data);
+          console.log(data);
+          // setData(getMockEvents());
+          if(data.length === 0) setHasEvents(false);
+          else{
+              console.log("Data is not empty");
+              setPastEventDays(splitEventsByDate(data).pastEvents);
+              console.log("Past Event",pastEventDays);
+              setCurrEvents(splitEventsByDate(data).currentAndFutureEvents);
+              console.log("Current Event",currEvents);
+          }
+        } catch (error) {
+          console.error('Error fetching user or events:', error);
+          // Optionally handle error (e.g., show error message, redirect)
+        } finally {
+          setLoading(false);
+        }
+      };
+    
       fetchUser();
-    }, [router]);
+    }, []); // Empty dependency array to run only once on mount
     const [activeTab, setActiveTab] = useState<string>("upcoming");
     const [hasEvents, setHasEvents] = useState<boolean>(true); // For demonstration, toggle to false to see empty state
-    const mockEventDays = getMockEvents();
-    let pastEventDays: any[] = [];
-    if(mockEventDays.length === 0) setHasEvents(false);
-    else{
-      pastEventDays = [...mockEventDays]
-      .reverse()
-      .map(day => {
-        const pastDate = new Date(day.date);
-        pastDate.setMonth(pastDate.getMonth() - 1);
-        return {
-          ...day,
-          date: pastDate
-        };
-      });
-    }
     // Simulating past events by reversing the array and changing dates
     // Fetch some example data from Supabase
-      const fetchData = async () => {
-        const { data, error } = await supabase.from("events").select("*");
-        if (!error) setData(data);
-      };
+    function splitEventsByDate(events: EventData[]): { pastEvents: EventData[]; currentAndFutureEvents: EventData[] } {
+      // Get today's date in UTC (year, month, and day only)
+      const now = new Date();
+      const todayUTC = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate());
+    
+      const pastEvents: EventData[] = [];
+      const currentAndFutureEvents: EventData[] = [];
+    
+      events.forEach(event => {
+        const eventDate = new Date(event.event_date);
+        // Get the UTC timestamp for the event's date (ignoring the time part)
+        const eventUTC = Date.UTC(eventDate.getUTCFullYear(), eventDate.getUTCMonth(), eventDate.getUTCDate());
+    
+        if (eventUTC < todayUTC) {
+          pastEvents.push(event);
+        } else {
+          currentAndFutureEvents.push(event);
+        }
+      });
+    
+      return { pastEvents, currentAndFutureEvents };
+    }
+    
+    
+    
+    
 
   return (
     <div className="min-h-screen w-full bg-[#F1F0FB]">
@@ -123,7 +151,7 @@ export default function Dashboard() {
                 </Button>
               </Link>
             </div>
-            <EventTimeline days={activeTab === "upcoming" ? mockEventDays : pastEventDays} />
+            <EventTimeline events={activeTab === "upcoming" ? currEvents : pastEventDays} />
             
           </div>
         ) : (

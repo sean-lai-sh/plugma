@@ -3,8 +3,8 @@ import React from "react";
  import { Users, TrendingUp, DollarSign } from "lucide-react";
  
  interface ChartToggleProps {
-   selectedChart: 'attendees' | 'engagement' | 'revenue';
-   onChange: (chart: 'attendees' | 'engagement' | 'revenue') => void;
+   selectedChart: 'attendees' | 'engagement';
+   onChange: (chart: 'attendees' | 'engagement') => void;
  }
  
  export const ChartToggle: React.FC<ChartToggleProps> = ({ 
@@ -31,7 +31,7 @@ import React from "react";
          <TrendingUp className="h-4 w-4" />
          <span className="hidden sm:inline">Engagement</span>
        </Button>
-       <Button
+       {/* <Button
          variant={selectedChart === 'revenue' ? 'default' : 'ghost'}
          size="sm"
          onClick={() => onChange('revenue')}
@@ -39,7 +39,7 @@ import React from "react";
        >
          <DollarSign className="h-4 w-4" />
          <span className="hidden sm:inline">Revenue</span>
-       </Button>
+       </Button> */}
      </div>
    );
  };

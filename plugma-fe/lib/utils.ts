@@ -11,6 +11,19 @@ export type HostInfo = {
   profile_image: string;
 };
 
+export function generateScrambledKey(): string {
+  const timestamp = Date.now().toString(36);
+  const randomPart = Math.random().toString(36).substring(2);
+  const uniqueString = (timestamp + randomPart + Math.random().toString(36).substring(2))
+    .replace(/\./g, '')
+    .slice(0, 32)
+    .split('')
+    .sort(() => Math.random() - 0.5)
+    .join('');
+  
+  return uniqueString.toUpperCase();
+}
+
 export interface EventDetails {
   title: string;
   category: string;
@@ -49,6 +62,7 @@ export interface AttendeeInfo {
   attendee_name: string;
   profile_image: string;
   attendee_email: string;
+  id: string;
 }
 
 
@@ -68,4 +82,16 @@ export type manageEventType = {
   approval_required: boolean;
   hosts_info: HostInfo[]; // JSONB array of hosts
   attendees: AttendeeInfo[]; // JSONB array of attendees
+};
+export type Event = {
+  community_name: string;
+  community_id: string;
+  event_id: string;
+  event_name: string;
+  event_date: string;
+  total_attendees: number;
+  total_rsvps: number;
+};
+export type CommunityGroupedEvents = {
+  [communityName: string]: Event[];
 };

@@ -41,6 +41,9 @@
     "next": "14.2.24",
     "next-auth": "^4.24.11",
     "next-cloudinary": "^6.16.0",
+    "openai": "^4.90.0",
+    "qrcode": "^1.5.4",
+    "qrcode.react": "^4.2.0",
     "react": "^18",
     "react-day-picker": "^8.10.1",
     "react-dom": "^18",
@@ -53,6 +56,8 @@
   "devDependencies": {
     "@types/js-cookie": "^3.0.6",
     "@types/node": "^20",
+    "@types/qrcode": "^1.5.5",
+    "@types/qrcode.react": "^1.0.5",
     "@types/react": "^18",
     "@types/react-dom": "^18",
     "postcss": "^8",

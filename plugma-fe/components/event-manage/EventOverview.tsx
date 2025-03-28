@@ -10,6 +10,7 @@ import { testGuestStats } from '@/lib/consts';
 import Link from 'next/link';
 import { Separator } from '@radix-ui/react-dropdown-menu';
 import GuestProgress from './GuestProgress';
+import { Skeleton } from '../ui/skeleton';
 
 interface EventOverviewProps {
   eventEnded?: boolean;
@@ -19,8 +20,8 @@ interface EventOverviewProps {
 
 
 const EventOverview: React.FC<EventOverviewProps> = ({ eventEnded = true, eventData }) => {
-
-    const checkedIn = eventData.attendees.filter((attendee) => attendee.attended === true).length
+  if(eventData === null) return EventOverviewSkeleton();
+  const checkedIn = eventData.attendees.filter((attendee) => attendee.attended === true).length
   return (
     <div className="space-y-6 animate-slide-in">
       {eventEnded && (
@@ -133,3 +134,61 @@ const EventOverview: React.FC<EventOverviewProps> = ({ eventEnded = true, eventD
     );
 }
 export default EventOverview;
+
+const EventOverviewSkeleton = () => {
+  return (
+    <div className="space-y-6">
+      <Card className="overflow-hidden border-orange-200 bg-orange-50/40">
+        <CardContent className="p-4">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="space-y-2">
+              <Skeleton className="h-4 w-40" />
+              <Skeleton className="h-3 w-24" />
+            </div>
+            <Skeleton className="h-8 w-36" />
+          </div>
+        </CardContent>
+      </Card>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <Card className="overflow-hidden glass-card">
+          <CardHeader className="p-4 pb-2">
+            <CardTitle className="text-md font-medium">Event Recap</CardTitle>
+          </CardHeader>
+          <CardContent className="p-4 pt-0 space-y-4">
+            {[...Array(4)].map((_, i) => (
+              <div className="flex items-start gap-3" key={i}>
+                <Skeleton className="h-4 w-4 rounded-full mt-0.5" />
+                <Skeleton className="h-4 w-3/4" />
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+
+        <Card className="overflow-hidden glass-card">
+          <CardHeader className="p-4 pb-2">
+            <CardTitle className="text-md font-medium">Feedback</CardTitle>
+          </CardHeader>
+          <CardContent className="text-center p-4 py-6 space-y-3">
+            <Skeleton className="h-10 w-10 rounded-full mx-auto" />
+            <Skeleton className="h-4 w-24 mx-auto" />
+            <Skeleton className="h-3 w-36 mx-auto" />
+            <Skeleton className="h-8 w-24 mx-auto" />
+          </CardContent>
+        </Card>
+      </div>
+
+      <Card className="glass-card">
+        <CardHeader className="flex flex-row items-center justify-between p-4">
+          <CardTitle className="text-md font-medium">Invites</CardTitle>
+          <Skeleton className="h-8 w-28" />
+        </CardHeader>
+        <CardContent className="p-4 pt-0">
+          <Skeleton className="h-4 w-40 mb-4" />
+          <div className="flex flex-col items-center justify-center text-center py-6 border border-dashed rounded-md">
+            <Skeleton className="h-10 w-10 rounded-full" />
+          </div>
+        </CardContent>
+      </Card>
+    </div>);
+}

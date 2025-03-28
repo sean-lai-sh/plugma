@@ -1,12 +1,12 @@
 'use client';
 import { use, useCallback, useEffect, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell } from "recharts";
-import { ArrowUpRight, Users, CalendarDays, Sparkles, ChevronRight, Laugh } from "lucide-react";
+import { ArrowUpRight, Users, CalendarDays, Sparkles, ChevronRight, Laugh, ChevronDown, Check } from "lucide-react";
 // import { Separator } from "@/components/ui/separator";
 import { AnalyticsCard } from "@/components/dashboard/AnalyticsCard";
 import { RecommendationsBox } from "@/components/dashboard/RecommendationBox";
@@ -18,171 +18,250 @@ import { loadingStepsArr } from "@/lib/consts";
 import { Step } from '@/lib/types';
 import { supabase } from "@/lib/supabaseClient";
 import { useRouter } from "next/navigation";
-import { set } from "date-fns";
-type Event = {
-  community_name: string;
-  community_id: string;
-  event_id: string;
-  event_name: string;
-  event_date: string;
-  total_attendees: number;
-  total_rsvps: number;
-};
-
-type CommunityGroupedEvents = {
-  [communityName: string]: Event[];
+import { Event, CommunityGroupedEvents } from "@/lib/utils";
+type eStats = {
+  label: string;
+  value: number | string;
+  change: string;
+  icon: any;
+  color: string;
 };
 const EventDashboard = () => {
-    const [selectedChart, setSelectedChart] = useState<'attendees' | 'engagement' | 'revenue'>('attendees');
-    const [isLoading, setIsLoading] = useState(true);
-    const [loadingSteps, setLoadingSteps] = useState<Step[]>(loadingStepsArr);
-    const [recentEvents, setRecentEvents] = useState<Event[]>([]);
-    const [groupedEvent, setGroupedEvents] = useState<CommunityGroupedEvents>({});
-    const [userID, setUserID] = useState<string | null>(null);
-    const [communityList, setCommunityList] = useState<any[]>([]);
-    const [currCommName, setCurrCommName] = useState<string>('');
-    const router = useRouter();
-    // Mock data for event stats
-    const eventStats = [
-      { label: "Total Attendees", value: 247, change: "+12.5%", icon: Users, color: "bg-blue-500" },
-      { label: "VIP Attendees", value: 20, change: "+8.2%", icon: Laugh, color: "bg-orange-500" },
-      { label: "Events Hosted", value: 12, change: "+3.1%", icon: CalendarDays, color: "bg-violet-500" },
-      { label: "Avg. Engagement", value: "87%", change: "+5.3%", icon: Sparkles, color: "bg-amber-500" },
-    ];
-  
-    // Mock data for attendee growth chart
-    const attendeeData = [
-      { month: "Jan", attendees: 120 },
-      { month: "Feb", attendees: 145 },
-      { month: "Mar", attendees: 160 },
-      { month: "Apr", attendees: 185 },
-      { month: "May", attendees: 210 },
-      { month: "Jun", attendees: 247 },
-    ];
-  
-    // Mock data for engagement chart
-    const engagementData = [
-      { month: "Jan", engagement: 72 },
-      { month: "Feb", engagement: 75 },
-      { month: "Mar", engagement: 79 },
-      { month: "Apr", engagement: 82 },
-      { month: "May", engagement: 85 },
-      { month: "Jun", engagement: 87 },
-    ];
-  
-    // Mock data for revenue chart
-    const revenueData = [
-      { month: "Jan", revenue: 2100 },
-      { month: "Feb", revenue: 2450 },
-      { month: "Mar", revenue: 2800 },
-      { month: "Apr", revenue: 3200 },
-      { month: "May", revenue: 3750 },
-      { month: "Jun", revenue: 4320 },
-    ];
-  
-    // Mock data for audience breakdown
-    const audienceData = [
-      { name: "First-time", value: 30, color: "#8B5CF6" },
-      { name: "Returning", value: 45, color: "#22C55E" },
-      { name: "VIP", value: 25, color: "#F97316" },
-    ];
+  const [user, setUser] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [selectedChart, setSelectedChart] = useState<'attendees' | 'engagement'>('attendees'); // add back revenue after MVP
+  const [isLoading, setIsLoading] = useState(true);
+  const [loadingSteps, setLoadingSteps] = useState<Step[]>(loadingStepsArr);
+  const [recentEvents, setRecentEvents] = useState<Event[]>([]);
+  const [groupedEvent, setGroupedEvents] = useState<CommunityGroupedEvents>({});
+  const [communityList, setCommunityList] = useState<any[]>([]);
+  const [currCommName, setCurrCommName] = useState<string>('');
+  const router = useRouter();
+  const [eventStats, setEventStats] = useState<eStats[]>([]);
+  const mockEStats = [
+    { label: "Total Attendees", value: 247, change: "+12.5%", icon: Users, color: "bg-blue-500" },
+    { label: "VIP Attendees", value: 20, change: "+8.2%", icon: Laugh, color: "bg-orange-500" },
+    { label: "Events Hosted", value: 12, change: "+3.1%", icon: CalendarDays, color: "bg-violet-500" },
+    { label: "Avg. Engagement", value: "87%", change: "+5.3%", icon: Sparkles, color: "bg-amber-500" },
+  ];
 
-    function groupEventsByCommunity(events: Event[]): CommunityGroupedEvents {
-      return events.reduce((acc, event) => {
-        if (!acc[event.community_name]) {
-          acc[event.community_name] = [];
-        }
-        acc[event.community_name].push(event);
-        
-        return acc;
-      }, {} as CommunityGroupedEvents);
-    }
+  const attendeeData = [
+    { month: "Jan", attendees: 120 },
+    { month: "Feb", attendees: 145 },
+    { month: "Mar", attendees: 160 },
+    { month: "Apr", attendees: 185 },
+    { month: "May", attendees: 210 },
+    { month: "Jun", attendees: 247 },
+  ];
 
-    const handleCommunityChange = useCallback((value: string) => {
-      setCurrCommName(value);
-      
-      // Directly update recent events based on the selected community
-      if (groupedEvent[value]) {
-        setRecentEvents(groupedEvent[value]);
+  const engagementData = [
+    { month: "Jan", engagement: 72 },
+    { month: "Feb", engagement: 75 },
+    { month: "Mar", engagement: 79 },
+    { month: "Apr", engagement: 82 },
+    { month: "May", engagement: 85 },
+    { month: "Jun", engagement: 87 },
+  ];
+
+  const revenueData = [
+    { month: "Jan", revenue: 2100 },
+    { month: "Feb", revenue: 2450 },
+    { month: "Mar", revenue: 2800 },
+    { month: "Apr", revenue: 3200 },
+    { month: "May", revenue: 3750 },
+    { month: "Jun", revenue: 4320 },
+  ];
+
+  const audienceData = [
+    { name: "First-time", value: 30, color: "#8B5CF6" },
+    { name: "Returning", value: 45, color: "#22C55E" },
+    { name: "VIP", value: 25, color: "#F97316" },
+  ];
+
+  function groupEventsByCommunity(events: Event[]): CommunityGroupedEvents {
+    return events.reduce((acc, event) => {
+      if (!acc[event.community_name]) {
+        acc[event.community_name] = [];
       }
-    }, [recentEvents]);
-
-    useEffect(() => {
-      const fetchUserAndCommunityData = async () => {
-        try {
-          const { data: { user } } = await supabase.auth.getUser();
-          if (!user) {
-            console.log("User not found, redirecting...");
-            router.push("/");
-            return;
-          }
+      acc[event.community_name].push(event);
+      
+      return acc;
+    }, {} as CommunityGroupedEvents);
+  }
+  const handleCommunityChange = useCallback((value: string) => {
+    setCurrCommName(value);
     
-          setUserID(user.id);
+    // Directly update recent events based on the selected community
+    if (groupedEvent[value]) {
+      setRecentEvents(groupedEvent[value]);
+    }
+  }, [recentEvents]);
+  
+  function processForCharts(events: Event[]): {
+    attendeeData: { month: string; attendees: number }[];
+    engagementData: { month: string; engagement: number }[];
+  } {
+    // Mapping of month indexes to month abbreviations.
+    const monthMap = [
+      "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+      "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+    ];
+  
+    // Group data per month.
+    // For each month we keep a running total of attendees, engagement, and event count.
+    const groups: Record<string, { totalAttendees: number; totalEngagement: number; count: number }> = {};
+  
+    events.forEach(event => {
+      // Parse the event date
+      const date = new Date(event.event_date);
+      // Get the month abbreviation from the month index (0-indexed)
+      const month = monthMap[date.getMonth()];
+  
+      if (!groups[month]) {
+        groups[month] = { totalAttendees: 0, totalEngagement: 0, count: 0 };
+      }
+      groups[month].totalAttendees += event.total_attendees;
+      // Assume engagement is the total RSVPs for the event.
+      groups[month].totalEngagement += event.total_rsvps;
+      groups[month].count += 1;
+    });
+  
+    // Create arrays for chart data.
+    const attendeeData: { month: string; attendees: number }[] = [];
+    const engagementData: { month: string; engagement: number }[] = [];
+  
+    // Calculate averages for each month.
+    Object.keys(groups).forEach(month => {
+      const { totalAttendees, totalEngagement, count } = groups[month];
+      // Calculate average and round if desired.
+      const avgAttendees = Math.round(totalAttendees / count);
+      const avgEngagement = Math.round(totalEngagement / count);
+  
+      attendeeData.push({ month, attendees: avgAttendees });
+      engagementData.push({ month, engagement: avgEngagement });
+    });
+  
+    // Sort data arrays based on month order (using monthMap)
+    attendeeData.sort((a, b) => monthMap.indexOf(a.month) - monthMap.indexOf(b.month));
+    engagementData.sort((a, b) => monthMap.indexOf(a.month) - monthMap.indexOf(b.month));
+  
+    return { attendeeData, engagementData };
+  }
+
+  // fill out the eventStats array
+  function processEStats(events: Event[]): eStats[] {
+    const totalAttendees = events.reduce((acc, event) => acc + event.total_attendees, 0);
+    const totalRSVPs = events.filter(event => event.total_rsvps).reduce((acc, event) => acc + event.total_rsvps, 0);
+    const totalEvents = events.length;
+    const totalEngagement = Math.round(events.reduce((acc, event) => acc + event.total_rsvps, 0) / events.length);
+
+    function formatPercentageChange(value: number): string {
+      const sign = value > 0 ? "+" : value < 0 ? "−" : "";
+      return `${sign}${Math.abs(value).toFixed(1)}%`; 
+    }
+    
+    return [
+      { label: "Total Attendees", value: totalAttendees, change: formatPercentageChange(totalAttendees), icon: Users, color: "bg-blue-500" },
+      { label: "Total RSVPs", value: totalRSVPs, change: formatPercentageChange(totalRSVPs), icon: Laugh, color: "bg-orange-500" },
+      { label: "Events Hosted", value: totalEvents, change: totalEvents.toString(), icon: CalendarDays, color: "bg-violet-500" },
+      { label: "Avg. Engagement", value: `${totalEngagement}%`, change: "+5.3%", icon: Sparkles, color: "bg-amber-500" },
+    ]
+  }
+
+  // Fetch user using Supabase
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const { data, error } = await supabase.auth.getUser();
+        
+        if (error) {
+          console.error("Error fetching user:", error);
+          setLoading(false);
+          return;
+        }
+
+        if (data.user) {
+          setUser(data.user);
+          setLoading(false);
+        }
+      } catch (error) {
+        console.error("Unexpected error fetching user:", error);
+        setLoading(false);
+      }
+    };
+
+    fetchUser();
+  }, []);
+
+  useEffect(() => {
+    const fetchUserAndCommunityData = async () => {
+      try {
+        if(!user) return;
+        
+        const params = new URLSearchParams({ user_id: user.id });
+        const res = await fetch(
+          `${process.env.NEXT_PUBLIC_API_ROUTE}/ds/getallcomms/?${params.toString()}`
+        );
+        
+        if (res.ok) {
+          const data = await res.json();
+          setCommunityList(data);
           
-          const params = new URLSearchParams({ user_id: user.id });
-          const res = await fetch(
-            `${process.env.NEXT_PUBLIC_API_ROUTE}/ds/getallcomms/?${params.toString()}`
-          );
-          
-          if (res.ok) {
-            const data = await res.json();
-            setCommunityList(data);
+          if (data && data.length > 0) {
+            const initialCommunityName = data[0].name;
+            setCurrCommName(initialCommunityName);
             
-            if (data && data.length > 0) {
-              const initialCommunityName = data[0].name;
-              setCurrCommName(initialCommunityName);
+            // Fetch events for the initial community
+            const eventsParams = new URLSearchParams({ user_id: user.id });
+            const eventsResponse = await fetch(`${process.env.NEXT_PUBLIC_API_ROUTE}/ds/getallevents/?${eventsParams.toString()}`);
+            
+            if (eventsResponse.ok) {
+              const eventsData = await eventsResponse.json();
+              const groupedEvents = groupEventsByCommunity(eventsData);
+              setGroupedEvents(groupedEvents);
               
-              // Fetch events for the initial community
-              const eventsParams = new URLSearchParams({ user_id: user.id });
-              const eventsResponse = await fetch(`${process.env.NEXT_PUBLIC_API_ROUTE}/ds/getallevents/?${eventsParams.toString()}`);
-              
-              if (eventsResponse.ok) {
-                const eventsData = await eventsResponse.json();
-                const groupedEvents = groupEventsByCommunity(eventsData);
-                setGroupedEvents(groupedEvents);
-                
-                // Set recent events for the initial community
-                if (groupedEvents[initialCommunityName]) {
-                  setRecentEvents(groupedEvents[initialCommunityName]);
-                }
+              // Set recent events for the initial community
+              if (groupedEvents[initialCommunityName]) {
+                setRecentEvents(groupedEvents[initialCommunityName]);
+                console.log("All data fetched:", data, eventsData);
               }
             }
-            
-            setIsLoading(false);
           }
-        } catch (error) {
-          console.error("Error fetching user and community data:", error);
+          
           setIsLoading(false);
         }
-      };
-    
-      fetchUserAndCommunityData();
-    }, []); // Empty dependency array ensures this runs only once on mount
-    
-    useEffect(() => {
-      const fetchEventsByCommunity = async () => {
-        if (!userID || !currCommName) return;
-    
-        try {
-          const groupedEventsForCommunity = groupedEvent[currCommName];
-          
-          if (groupedEventsForCommunity) {
-            setRecentEvents(groupedEventsForCommunity);
-          }
-        } catch (error) {
-          console.error("Error fetching events by community:", error);
-        }
-      };
-    
-      fetchEventsByCommunity();
-    }, [currCommName, groupedEvent, userID]);
-  
-    function truncateText(text: string, maxLength: number) {
-      if (text.length <= maxLength) {
-        return text;
+      } catch (error) {
+        console.error("Error fetching user and community data:", error);
+        setIsLoading(false);
       }
-      return text.slice(0, maxLength - 3) + '...';
+    };
+  
+    if (user) {
+      fetchUserAndCommunityData();
     }
+  }, [user]); // Depend on user now
+  
+  useEffect(() => {
+    const fetchEventsByCommunity = async () => {
+      // Run this after mounting and when the user ID and current community name are set
+      if (!user || !currCommName) return;
+  
+      try {
+        const groupedEventsForCommunity = groupedEvent[currCommName];
+        
+        if (groupedEventsForCommunity) {
+          setRecentEvents(groupedEventsForCommunity);
+          setEventStats(processEStats(groupedEventsForCommunity));
+          /// TODO: CREATE FUNCTIONS THAT AGGREGATE DATA FOR THE CHARTS AND DATA POINTS
+        }
+      } catch (error) {
+        console.error("Error fetching events by community:", error);
+      }
+    };
+  
+    fetchEventsByCommunity();
+  }, [currCommName, groupedEvent, user]);
+  
     return (
       <>
       <div className={`min-h-screen bg-[#F1F0FB] pb-12`}>
@@ -200,19 +279,31 @@ const EventDashboard = () => {
         <main className="container mx-auto px-4 py-8">
           <div className="mb-8 flex items-center justify-between">
             <h1 className="text-3xl font-bold text-slate-900">Event Analytics</h1>
-            <Tabs 
-              value={currCommName}
-              onValueChange={handleCommunityChange} 
-              className="w-auto"
-            >
-              <TabsList className={`grid w-[300px] grid-cols-${communityList.length}`}>
-                {communityList.map((comm) => (
-                  <TabsTrigger value={comm.name} key={comm.community_id}>
-                    {truncateText(comm.name, 10)}
-                  </TabsTrigger>
-                ))}
-              </TabsList>
-            </Tabs>
+            {/* Community Dropdown */}
+            <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" className="w-[250px] justify-between">
+                    {currCommName || "Select Community"}
+                    <ChevronDown className="ml-2 h-4 w-4 opacity-50" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="w-[250px]">
+                  <DropdownMenuLabel>Your Communities</DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  {communityList.map((comm) => (
+                    <DropdownMenuItem 
+                      key={comm.community_id}
+                      onSelect={() => handleCommunityChange(comm.name)}
+                      className="flex justify-between items-center"
+                    >
+                      <span>{comm.name}</span>
+                      {currCommName === comm.name && (
+                        <Check className="h-4 w-4 text-green-600" />
+                      )}
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
           </div>
   
           {/* Stats Cards - Skeleton or Real */}
@@ -268,7 +359,7 @@ const EventDashboard = () => {
                         }}
                         className="h-[300px] w-[90%]"
                       >
-                        <BarChart data={attendeeData}>
+                        <BarChart data={processForCharts(recentEvents).attendeeData ? processForCharts(recentEvents).attendeeData : attendeeData}>
                           <XAxis dataKey="month" />
                           <YAxis />
                           <Tooltip content={<ChartTooltipContent />} />
@@ -283,7 +374,7 @@ const EventDashboard = () => {
                         }}
                         className="h-[300px] w-[90%]"
                       >
-                        <LineChart data={engagementData}>
+                        <LineChart data={processForCharts(recentEvents).engagementData ? processForCharts(recentEvents).engagementData : engagementData}>
                           <XAxis dataKey="month" />
                           <YAxis />
                           <Tooltip content={<ChartTooltipContent />} />
@@ -291,7 +382,7 @@ const EventDashboard = () => {
                         </LineChart>
                       </ChartContainer>
                     )}
-                    {selectedChart === 'revenue' && (
+                    {/* {selectedChart === 'revenue' && (
                       <ChartContainer
                         config={{
                           revenue: { color: "#F97316" }
@@ -305,12 +396,15 @@ const EventDashboard = () => {
                           <Bar dataKey="revenue" fill="var(--color-revenue)" radius={[4, 4, 0, 0]} />
                         </BarChart>
                       </ChartContainer>
-                    )}
+                    )} */}
                   </CardContent>
                 </Card>
     
                 {/* Insights & Recommendations */}
-                <RecommendationsBox />
+                <RecommendationsBox 
+                  events={recentEvents}
+                  currCommName={currCommName}
+                />
               </>
             )}
           </div>
@@ -330,7 +424,7 @@ const EventDashboard = () => {
                 <Card className="col-span-2">
                   <CardHeader>
                     <CardTitle>Recent Events</CardTitle>
-                    <CardDescription>Performance of your last 3 events</CardDescription>
+                    <CardDescription>Performance of your last few events</CardDescription>
                   </CardHeader>
                   <CardContent>
                     <Table>

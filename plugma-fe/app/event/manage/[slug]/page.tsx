@@ -20,7 +20,6 @@ export default function EventPageClient({ params }: { params: { slug: string } }
     const [loadingSteps, setLoadingSteps] = useState<{ label: string; progress: number }[]>([]);
     const router = useRouter();
     const { slug } = params;
-    useEffect(() => {
     const fetchEvent = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
@@ -44,9 +43,22 @@ export default function EventPageClient({ params }: { params: { slug: string } }
       setEvent(Array.isArray(data) ? data[0] : data);
       setIsLoading(false);
     };
+    useEffect(() => {
+      fetchEvent();
+    }, [params.slug, isLoading]);
 
-    fetchEvent();
-  }, [params.slug, router]);
+  const handleEdit = async (id:string) => {
+    // console.log("Edit", id);
+    const params = new URLSearchParams({ event_id: slug, user_id: id });
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_ROUTE}/events/update_check_in/?${params.toString()}`);
+    console.log('Response status:', response);
+    const data = await response.json();
+    if(data){
+      console.log('Data:', data);
+      fetchEvent();
+    }
+  }
+
 
   return (
     <div>
@@ -70,7 +82,7 @@ export default function EventPageClient({ params }: { params: { slug: string } }
         
         <main className="container mx-auto pb-16 px-4 md:px-6">
         <Tabs defaultValue="overview" className="mt-6">
-          <TabsList className="w-full grid grid-cols-4 mb-6">
+          <TabsList className="w-full grid grid-cols-5 mb-6">
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="guests">Guests</TabsTrigger>
             <TabsTrigger value="hosts">Hosts</TabsTrigger>
@@ -81,13 +93,15 @@ export default function EventPageClient({ params }: { params: { slug: string } }
             <EventOverview eventEnded={new Date(event.end_date) <= new Date()} 
               eventData={event}
             />
-            <GuestList eventData={event}              
+            <GuestList eventData={event} 
+              onEdit={handleEdit}             
             />
             <HostList hosts={event.hosts_info}/>
           </TabsContent>
           
           <TabsContent value="guests">
-            <GuestList eventData={event}              
+            <GuestList eventData={event}   
+            onEdit={handleEdit}           
             />
             
           </TabsContent>

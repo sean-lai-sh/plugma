@@ -9,6 +9,7 @@ import { cancel_attendee } from "../controllers/events/cancel_attendee";
 import { update_attendee } from "../controllers/events/update_attendee";
 import { check_host } from "../controllers/events/check_host";
 import { update_event_comm } from "../controllers/events/update_event_comm";
+import { updateCheckIn } from "../controllers/events/updateCheckIn";
 
 const router: Router = Router();
 router.get('/manageEvent', manageEvent);
@@ -23,5 +24,6 @@ router.get('/check_host', check_host);
 router.post("/create", createEventController);
 router.post("/blast", blastEmail);
 router.post("/predict", predictRSVP);
+router.get("/update_check_in", updateCheckIn);
 
 export default router;
