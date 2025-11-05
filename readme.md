@@ -4,6 +4,10 @@ Luma and my university wont give me the data for me to run a community aggregate
 
 Its time our event hosting platforms let us perform analytics across events to grow our communities.
 
+## Disclaimer ##
+
+I've sunset the domain and services to save on cost while I build an MCP related project. Feel free to use this codebase.
+
 ## Stack ##
 
 Frontend:
